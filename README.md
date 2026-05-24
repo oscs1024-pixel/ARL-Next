@@ -75,3 +75,42 @@
 *   **任务分发**：Celery, RabbitMQ
 *   **数据库**：MongoDB
 *   **部署**：Docker, Docker Compose
+
+## 5. 一键部署与使用教程
+
+为了方便快速体验，本项目提供了预配置的 Docker Compose 文件，支持一键启动。
+
+### 5.1 环境要求
+请确保您的服务器或本地环境已安装以下软件：
+*   [Docker](https://docs.docker.com/get-docker/)
+*   [Docker Compose](https://docs.docker.com/compose/install/) (建议使用 v2 版本)
+
+### 5.2 部署方式
+
+**对于生产/测试环境运行：**
+推荐使用 `docker-compose.test.yml` 启动系统，此模式使用预编译的前后端镜像。
+```bash
+# 在项目根目录下执行：
+docker compose -f docker-compose.test.yml up -d
+```
+启动后，系统将映射宿主机的 `80` 端口。
+
+**对于本地开发环境运行：**
+如果您希望基于本地源代码实时挂载运行，请使用 `docker-compose.local.yml`。
+```bash
+# 在项目根目录下执行：
+docker compose -f docker-compose.local.yml up -d --build
+```
+启动后，前端 Web 界面将映射在宿主机的 `8080` 端口。
+
+### 5.3 默认账号密码与登录
+
+无论采用哪种方式启动，等所有容器（`frontend`, `backend`, `worker`, `mongodb`, `rabbitmq` 等）全部处于 `running` 状态后，可以通过浏览器访问系统：
+
+*   **访问地址**：
+    *   生产/测试模式：`http://您的服务器IP/`
+    *   本地开发模式：`http://127.0.0.1:8080/`
+*   **默认登录账号**：`admin`
+*   **默认登录密码**：`arlpass`
+
+> 提示：如果密码 `arlpass` 无法登录，请尝试弱口令 `admin` 或是根据您数据库中初始化的密码进行登录。登录后，请务必前往个人设置中心修改默认密码，保证资产系统的安全。
