@@ -63,6 +63,29 @@ export default defineConfig(({ command }) => {
           secure: false, // 忽略自签名的 HTTPS 证书错误
         }
       }
+    },
+
+    // 打包优化配置
+    build: {
+      chunkSizeWarningLimit: 2000,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('echarts')) {
+                return 'echarts';
+              }
+              if (id.includes('ant-design-vue') || id.includes('@ant-design')) {
+                return 'ant-design-vue';
+              }
+              if (id.includes('vue') || id.includes('vue-router')) {
+                return 'vue-vendor';
+              }
+              return 'vendor';
+            }
+          }
+        }
+      }
     }
   }
 })
