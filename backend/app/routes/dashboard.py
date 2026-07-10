@@ -33,11 +33,12 @@ class DashboardStats(ARLResource):
         today_start_oid = ObjectId.from_datetime(today_start_dt)
         today_new_assets = conn('asset_site').count({"_id": {"$gte": today_start_oid}})
         
-        # 3. 漏洞分类统计
-        critical = conn('nuclei_result').count({"vuln_severity": "critical"})
-        high = conn('nuclei_result').count({"vuln_severity": "high"}) + conn('vuln').count({})
-        medium = conn('nuclei_result').count({"vuln_severity": "medium"})
-        low = conn('nuclei_result').count({"vuln_severity": "low"})
+        # 3. 漏洞分类统计 (拆分 ARL 和 Nuclei)
+        arl_total = conn('vuln').count({})
+        nuclei_critical = conn('nuclei_result').count({"vuln_severity": "critical"})
+        nuclei_high = conn('nuclei_result').count({"vuln_severity": "high"})
+        nuclei_medium = conn('nuclei_result').count({"vuln_severity": "medium"})
+        nuclei_low = conn('nuclei_result').count({"vuln_severity": "low"})
         
         # 4. GitHub 监控数
         github_monitors = conn('github_monitor_task').count({})
@@ -47,10 +48,11 @@ class DashboardStats(ARLResource):
             "today_tasks": today_tasks,
             "today_new_assets": today_new_assets,
             "vuln": {
-                "critical": critical,
-                "high": high,
-                "medium": medium,
-                "low": low
+                "arl_total": arl_total,
+                "nuclei_critical": nuclei_critical,
+                "nuclei_high": nuclei_high,
+                "nuclei_medium": nuclei_medium,
+                "nuclei_low": nuclei_low
             },
             "github_monitors": github_monitors
         }

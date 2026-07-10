@@ -351,10 +351,12 @@
 
 <script setup>
 import { ref, onMounted, reactive, watch , onUnmounted } from 'vue';
+import { useRoute } from 'vue-router';
 import request from '../utils/request';
 import { message } from 'ant-design-vue';
 import { SearchOutlined } from '@ant-design/icons-vue';
 
+const route = useRoute();
 const activeTab = ref('site');
 const loading = ref(false);
 const dataSource = ref([]);
@@ -719,7 +721,22 @@ watch(activeTab, (newVal) => {
   }
 });
 
-onMounted(fetchData);
+onMounted(() => {
+  // Read query parameters to set initial tab and search form
+  if (route.query.tab && tabConfig[route.query.tab]) {
+    activeTab.value = route.query.tab;
+    columns.value = tabConfig[route.query.tab].cols;
+  }
+  
+  // Set search form values from query parameters if they exist
+  for (const key in route.query) {
+    if (key !== 'tab') {
+      searchForm.value[key] = route.query[key];
+    }
+  }
+  
+  fetchData();
+});
 
 
 

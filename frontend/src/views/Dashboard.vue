@@ -30,27 +30,44 @@
         </a-card>
       </a-col>
       <a-col :span="6">
-        <a-card class="clickable-card" :bodyStyle="{ padding: '16px 20px' }" @click="router.push('/pocList')">
+        <a-card :bodyStyle="{ padding: '16px 20px' }">
           <div style="font-size: 14px; color: rgba(0, 0, 0, 0.45); margin-bottom: 8px;">
-            <AlertOutlined style="color: #f5222d; margin-right: 4px;" /> 发现的漏洞 (PoC)
+            <AlertOutlined style="color: #f5222d; margin-right: 4px;" /> 发现的风险漏洞
           </div>
           <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px;">
-            <div style="text-align: center;">
-              <div style="font-size: 20px; color: #820014; font-weight: 500;">{{ stats.vuln.critical }}</div>
-              <div style="font-size: 12px; color: #999;">严重</div>
-            </div>
-            <div style="text-align: center;">
-              <div style="font-size: 20px; color: #cf1322; font-weight: 500;">{{ stats.vuln.high }}</div>
-              <div style="font-size: 12px; color: #999;">高危</div>
-            </div>
-            <div style="text-align: center;">
-              <div style="font-size: 20px; color: #d46b08; font-weight: 500;">{{ stats.vuln.medium }}</div>
-              <div style="font-size: 12px; color: #999;">中危</div>
-            </div>
-            <div style="text-align: center;">
-              <div style="font-size: 20px; color: #096dd9; font-weight: 500;">{{ stats.vuln.low }}</div>
-              <div style="font-size: 12px; color: #999;">低危</div>
-            </div>
+            <a-tooltip title="ARL 内部插件检测到的漏洞">
+              <div class="interactive-item" style="text-align: center; cursor: pointer; flex: 1;" @click="router.push({ path: '/asset-search', query: { tab: 'vuln' } })">
+                <div style="font-size: 18px; color: #cf1322; font-weight: 500;">{{ stats.vuln.arl_total }}</div>
+                <div style="font-size: 12px; color: #999;">ARL</div>
+              </div>
+            </a-tooltip>
+            
+            <div style="width: 1px; height: 32px; background: #f0f0f0; margin-bottom: 4px; margin-left: 4px; margin-right: 4px;"></div>
+            
+            <a-tooltip title="Nuclei 严重漏洞">
+              <div class="interactive-item" style="text-align: center; cursor: pointer; flex: 1;" @click="router.push({ path: '/asset-search', query: { tab: 'nuclei_result', vuln_severity: 'critical' } })">
+                <div style="font-size: 18px; color: #820014; font-weight: 500;">{{ stats.vuln.nuclei_critical }}</div>
+                <div style="font-size: 12px; color: #999;">严重</div>
+              </div>
+            </a-tooltip>
+            <a-tooltip title="Nuclei 高危漏洞">
+              <div class="interactive-item" style="text-align: center; cursor: pointer; flex: 1;" @click="router.push({ path: '/asset-search', query: { tab: 'nuclei_result', vuln_severity: 'high' } })">
+                <div style="font-size: 18px; color: #cf1322; font-weight: 500;">{{ stats.vuln.nuclei_high }}</div>
+                <div style="font-size: 12px; color: #999;">高危</div>
+              </div>
+            </a-tooltip>
+            <a-tooltip title="Nuclei 中危漏洞">
+              <div class="interactive-item" style="text-align: center; cursor: pointer; flex: 1;" @click="router.push({ path: '/asset-search', query: { tab: 'nuclei_result', vuln_severity: 'medium' } })">
+                <div style="font-size: 18px; color: #d46b08; font-weight: 500;">{{ stats.vuln.nuclei_medium }}</div>
+                <div style="font-size: 12px; color: #999;">中危</div>
+              </div>
+            </a-tooltip>
+            <a-tooltip title="Nuclei 低危漏洞">
+              <div class="interactive-item" style="text-align: center; cursor: pointer; flex: 1;" @click="router.push({ path: '/asset-search', query: { tab: 'nuclei_result', vuln_severity: 'low' } })">
+                <div style="font-size: 18px; color: #096dd9; font-weight: 500;">{{ stats.vuln.nuclei_low }}</div>
+                <div style="font-size: 12px; color: #999;">低危</div>
+              </div>
+            </a-tooltip>
           </div>
         </a-card>
       </a-col>
@@ -188,7 +205,7 @@ const stats = ref({
   total_assets: 0,
   today_tasks: 0,
   today_new_assets: 0,
-  vuln: { critical: 0, high: 0, medium: 0, low: 0 },
+  vuln: { arl_total: 0, nuclei_critical: 0, nuclei_high: 0, nuclei_medium: 0, nuclei_low: 0 },
   github_monitors: 0
 });
 
@@ -263,7 +280,7 @@ const fetchTrendAndRender = async () => {
           textStyle: { color: '#333' }
         },
         legend: {
-          data: ['新增站点', '高危漏洞'],
+          data: ['新增站点', '漏洞'],
           top: 0
         },
         grid: {
@@ -315,7 +332,7 @@ const fetchTrendAndRender = async () => {
             }
           },
           {
-            name: '高危漏洞',
+            name: '漏洞',
             type: 'bar',
             yAxisIndex: 1,
             barMaxWidth: 20,
@@ -402,7 +419,18 @@ onUnmounted(() => {
   transition: background-color 0.3s;
 }
 .clickable-log:hover {
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: #f5f5f5;
+}
+
+.interactive-item {
+  transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+  border-radius: 6px;
+  padding: 4px;
+}
+.interactive-item:hover {
+  background-color: rgba(24, 144, 255, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 .log-message-box {
   margin-top: 8px;
