@@ -26,8 +26,8 @@
 
 ## 📸 界面预览
 
-* **全局仪表盘**：实时展示系统资源消耗、任务执行队列、多维资产统计与后台运行日志流。
-  <br><img src="./img/dashboard.png" alt="仪表盘" width="800"><br>
+* **全局仪表盘**：实时展示系统资源消耗、后台任务状态、多维资产与风险统计（含7天趋势）及最新系统日志流。
+  <br><img src="./img/dashboard1.png" alt="仪表盘" width="800"><br>
 
 * **企业资产查询**：支持 ICP 备案与天眼查关联检索，一键同步资产（网站/小程序/APP/公众号/微博）下发扫描任务。
   <br><img src="./img/enterprise-asset-search.png" alt="ICP备案查询" width="800"><br>
