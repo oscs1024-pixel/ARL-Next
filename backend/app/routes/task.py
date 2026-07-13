@@ -6,7 +6,7 @@ from app import celerytask
 from app.utils import get_logger, auth
 from . import base_query_fields, ARLResource, get_arl_parser, conn
 from app import utils
-from app.modules import TaskStatus, ErrorMsg, TaskSyncStatus, CeleryAction, TaskTag, TaskType
+from app.modules import TaskStatus, ErrorMsg, TaskSyncStatus, CeleryAction, TaskTag, TaskType, AssetScopeType
 from app.helpers import get_options_by_policy_id, submit_task_task,\
     submit_risk_cruising, get_scope_by_scope_id, check_target_in_scope
 from app.helpers.task import get_task_data, restart_task
@@ -438,23 +438,43 @@ class Target2Scope(ARLResource):
         args = self.parser.parse_args()
         target = args.pop("target")
 
-        # 1. 格式校验：传进来的必须是个合法的域名（不能瞎填）
-        if not utils.is_valid_domain(target):
+        from app.utils.ip import ip_in_scope
+        
+        is_domain = utils.is_valid_domain(target)
+        is_ip = utils.is_vaild_ip_target(target)
+
+        # 1. 格式校验：传进来的必须是个合法的域名或IP
+        if not is_domain and not is_ip:
             return utils.build_ret(ErrorMsg.DomainInvalid, {"target": target})
 
-        # 2. 提取主域名：比如传进来 a.b.baidu.com，get_fld 会提取出 baidu.com
-        args["scope_array"] = utils.get_fld(target)
+        # 2. 提取主域名或设置过滤条件
+        if is_domain:
+            args["scope_array"] = utils.get_fld(target)
+            
         args["size"] = 100
         args["order"] = "_id"
 
-        # 3. 粗筛：去数据库里把包含 "baidu.com" 的资产组全捞出来
+        # 3. 粗筛：去数据库里把资产组全捞出来
         data = self.build_data(args=args, collection='asset_scope')
         ret = []
 
-        # 4. 精筛：遍历粗筛出来的资产组，用 is_in_scopes 进行严格的正则或子域名匹配
+        # 4. 精筛：遍历粗筛出来的资产组，进行严格的匹配
         for item in data["items"]:
-            if utils.is_in_scopes(target, item["scope_array"]):
-                ret.append(item)    # 如果完全匹配，放入最终返回的列表中
+            domain_array = item.get("domain_array")
+            ip_array = item.get("ip_array")
+
+            if domain_array is None or ip_array is None:
+                st = item.get("scope_type", "domain")
+                sa = item.get("scope_array", [])
+                domain_array = sa if st == "domain" else []
+                ip_array = sa if st == "ip" else []
+
+            if is_domain:
+                if utils.is_in_scopes(target, domain_array):
+                    ret.append(item)    # 如果完全匹配，放入最终返回的列表中
+            else:
+                if ip_in_scope(target, ip_array):
+                    ret.append(item)
 
         data["items"] = ret
         data["total"] = len(ret)
@@ -512,7 +532,7 @@ class TaskByPolicy(ARLResource):
                         return utils.build_ret(ErrorMsg.NotFoundScopeID, {"scope_id": related_scope_id})
 
                     # 强行比对：如果你扫的目标不在绑定的资产组里，这里会直接抛出报错中断
-                    check_target_in_scope(target=target, scope_list=scope_data["scope_array"])
+                    check_target_in_scope(target=target, scope_data=scope_data)
 
                 # 校验全过，把目标和“套用模板取出来的options”派发给 Celery
                 task_data_list = submit_task_task(target=target, name=name, options=options)

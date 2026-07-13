@@ -316,8 +316,8 @@ const submitPolicy = async () => {
 
   submitLoading.value = true;
   try {
-    const poc_config = pocList.value.map(p => ({ plugin_name: p.plugin_name, vul_name: p.vul_name, enable: p.enable }));
-    const brute_config = bruteList.value.map(p => ({ plugin_name: p.plugin_name, vul_name: p.vul_name, enable: p.enable }));
+    const poc_config = pocList.value.filter(p => p.enable).map(p => ({ plugin_name: p.plugin_name, vul_name: p.vul_name, enable: p.enable }));
+    const brute_config = bruteList.value.filter(p => p.enable).map(p => ({ plugin_name: p.plugin_name, vul_name: p.vul_name, enable: p.enable }));
 
     // 构建核心业务数据
     const policyData = {

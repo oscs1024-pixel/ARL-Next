@@ -49,3 +49,6 @@ server.txt
 lab/
 apikey.txt
 test/
+backend/ARL-NPoC/build/
+backend/ARL-NPoC/xing.egg-info/
+tmp.txt

@@ -11,6 +11,8 @@ base_search_fields = {
     'site': fields.String(description="域名"),
     'url': fields.String(required=False, description="URL"),
     'content_length': fields.Integer(description="body 长度"),
+    'content_length__gt': fields.Integer(description="body 长度大于"),
+    'content_length__lt': fields.Integer(description="body 长度小于"),
     'status_code': fields.Integer(description="状态码"),
     'title': fields.String(description="标题"),
     'source': fields.String(description="来源"),

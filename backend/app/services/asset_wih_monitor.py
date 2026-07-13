@@ -21,10 +21,13 @@ class AssetWihMonitor(object):
             raise Exception("没有找到资产组 {}".format(self.scope_id))
 
         self.scope_name = scope_data.get("name", "")
-        scope_type = scope_data.get("scope_type", "")
-
-        if scope_type == "domain":
-            self.scope_domains = scope_data.get("scope_array", [])
+        # 直接使用 domain_array，兼容历史数据则回退至 scope_array
+        if "domain_array" in scope_data:
+            self.scope_domains = scope_data.get("domain_array", [])
+        else:
+            scope_type = scope_data.get("scope_type", "")
+            if scope_type == "domain":
+                self.scope_domains = scope_data.get("scope_array", [])
 
         self.sites = asset_site.find_site_by_scope_id(self.scope_id)
 

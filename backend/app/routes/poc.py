@@ -68,9 +68,58 @@ class ARLPoCDelete(ARLResource):
         清空 PoC 信息
         """
         result = utils.conn_db('poc').delete_many({})
-
         delete_cnt = result.deleted_count
 
+        # 级联清空 policy 表中的所有相关引用
+        utils.conn_db('policy').update_many(
+            {},
+            {
+                "$set": {
+                    "policy.poc_config": [],
+                    "policy.brute_config": []
+                }
+            }
+        )
+
+        return utils.build_ret(ErrorMsg.Success, {"delete_cnt": delete_cnt})
+
+    @auth
+    def post(self):
+        """
+        批量删除 PoC 信息
+        """
+        args = request.json or {}
+        plugin_names = args.get('plugin_names', [])
+        
+        if not plugin_names:
+            return utils.build_ret(ErrorMsg.Error, {'error': '未提供要删除的 PoC plugin_names'})
+
+        # 1. 从 DB 删除
+        result = utils.conn_db('poc').delete_many({'plugin_name': {'$in': plugin_names}})
+        delete_cnt = result.deleted_count
+        
+        # 2. 级联清空 policy 表中的相关引用
+        utils.conn_db('policy').update_many(
+            {},
+            {
+                "$pull": {
+                    "policy.poc_config": {"plugin_name": {"$in": plugin_names}},
+                    "policy.brute_config": {"plugin_name": {"$in": plugin_names}}
+                }
+            }
+        )
+
+        # 3. 从磁盘删除实际脚本文件
+        plugins_dir = npoc_conf.SYSTEM_PLUGINS_DIR
+        for name in plugin_names:
+            for ext in ['.py', '.yml', '.yaml']:
+                file_path = os.path.join(plugins_dir, f"{name}{ext}")
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                    except Exception as e:
+                        logger.error(f"Failed to remove poc file: {file_path}, err: {e}")
+                        
         return utils.build_ret(ErrorMsg.Success, {"delete_cnt": delete_cnt})
 
 
@@ -84,11 +133,11 @@ class ARLPoCImport(ARLResource):
         导入 PoC 文件 (支持单文件和多文件)
         """
         if 'file' not in request.files:
-            return utils.build_ret(ErrorMsg.ParamError, {'error': 'No file part'})
+            return utils.build_ret(ErrorMsg.Error, {'error': 'No file part'})
 
         files = request.files.getlist('file')
         if not files or len(files) == 0:
-            return utils.build_ret(ErrorMsg.ParamError, {'error': 'No selected file'})
+            return utils.build_ret(ErrorMsg.Error, {'error': 'No selected file'})
 
         plugins_dir = npoc_conf.SYSTEM_PLUGINS_DIR
         
@@ -133,3 +182,129 @@ class ARLPoCImport(ARLResource):
             "fail_count": fail_count,
             "fail_details": fail_details
         })
+
+@ns.route('/source/')
+class ARLPoCSource(ARLResource):
+
+    @auth
+    def get(self):
+        """
+        获取 PoC 源码
+        """
+        plugin_name = request.args.get('plugin_name')
+        if not plugin_name:
+            return utils.build_ret(ErrorMsg.Error, {'error': '未提供 plugin_name'})
+        
+        plugins_dir = npoc_conf.SYSTEM_PLUGINS_DIR
+        file_path = ""
+        for root, dirs, files in os.walk(plugins_dir):
+            for ext in ['.py', '.yml', '.yaml']:
+                if f"{plugin_name}{ext}" in files:
+                    file_path = os.path.join(root, f"{plugin_name}{ext}")
+                    break
+            if file_path:
+                break
+        
+        if not file_path:
+            return utils.build_ret(ErrorMsg.Error, {'error': 'PoC 文件未找到'})
+            
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except Exception as e:
+            return utils.build_ret(ErrorMsg.Error, {'error': f'读取文件失败: {e}'})
+            
+        return utils.build_ret(ErrorMsg.Success, {'content': content})
+
+    @auth
+    def post(self):
+        """
+        更新 PoC 源码
+        """
+        args = request.json or {}
+        plugin_name = args.get('plugin_name')
+        content = args.get('content')
+        
+        if not plugin_name or content is None:
+            return utils.build_ret(ErrorMsg.Error, {'error': '未提供 plugin_name 或 content'})
+            
+        plugins_dir = npoc_conf.SYSTEM_PLUGINS_DIR
+        file_path = ""
+        for root, dirs, files in os.walk(plugins_dir):
+            for ext in ['.py', '.yml', '.yaml']:
+                if f"{plugin_name}{ext}" in files:
+                    file_path = os.path.join(root, f"{plugin_name}{ext}")
+                    break
+            if file_path:
+                break
+                
+        if not file_path:
+            return utils.build_ret(ErrorMsg.Error, {'error': 'PoC 文件未找到'})
+            
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+        except Exception as e:
+            return utils.build_ret(ErrorMsg.Error, {'error': f'保存文件失败: {e}'})
+            
+        # 保存后同步更新到数据库
+        n = NPoC()
+        try:
+            n.sync_to_db()
+            n.delete_db()
+        except Exception as e:
+            logger.error(f"PoC 同步失败: {e}")
+            return utils.build_ret(ErrorMsg.Error, {'error': f'PoC 保存成功，但同步到数据库时失败: {e}'})
+
+        return utils.build_ret(ErrorMsg.Success, {'message': '保存成功'})
+
+
+@ns.route('/create/')
+class ARLPoCCreate(ARLResource):
+
+    @auth
+    def post(self):
+        """
+        新建 PoC 源码
+        """
+        args = request.json or {}
+        plugin_name = args.get('plugin_name')
+        content = args.get('content')
+        ext = args.get('ext', '.py')
+        
+        if not plugin_name or content is None:
+            return utils.build_ret(ErrorMsg.Error, {'error': '未提供 plugin_name 或 content'})
+            
+        plugins_dir = npoc_conf.SYSTEM_PLUGINS_DIR
+        
+        # 简单校验文件名合法性，防止路径穿越
+        if not plugin_name.replace('_', '').isalnum():
+            return utils.build_ret(ErrorMsg.Error, {'error': '插件名称只允许字母、数字和下划线'})
+            
+        # 根据后缀放入对应的基础目录，如果想完全贴合原有分类，这里统一放入 poc 目录
+        poc_dir = os.path.join(plugins_dir, 'poc')
+        if not os.path.exists(poc_dir):
+            poc_dir = plugins_dir
+            
+        file_path = os.path.join(poc_dir, f"{plugin_name}{ext}")
+        if os.path.exists(file_path):
+            return utils.build_ret(ErrorMsg.Error, {'error': '该插件名称已存在，请更换！'})
+            
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+        except Exception as e:
+            return utils.build_ret(ErrorMsg.Error, {'error': f'保存文件失败: {e}'})
+            
+        # 保存后同步更新到数据库
+        n = NPoC()
+        try:
+            n.sync_to_db()
+            n.delete_db()
+        except Exception as e:
+            logger.error(f"PoC 同步失败: {e}")
+            return utils.build_ret(ErrorMsg.Error, {'error': f'PoC 保存成功，但同步到数据库时失败: {e}'})
+
+        return utils.build_ret(ErrorMsg.Success, {'message': '新建成功'})
+
+

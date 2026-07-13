@@ -428,13 +428,7 @@ const tabConfig = {
       {
         label: '记录类型',
         key: 'record_type',
-        type: 'select',
-        options: [
-          {label: 'domain', value: 'domain'}, {label: 'ip', value: 'ip'},
-          {label: 'email', value: 'email'}, {label: 'phone', value: 'phone'},
-          {label: 'idcard', value: 'idcard'}, {label: 'jwt', value: 'jwt'},
-          {label: 'url', value: 'url'}, {label: 'path', value: 'path'}
-        ]
+        operator: '='
       },
       { label: '内容', key: 'content', operator: '=' },
       { label: '来源 JS', key: 'source', operator: '=' },

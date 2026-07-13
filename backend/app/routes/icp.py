@@ -414,11 +414,16 @@ class IcpTaskSync(ARLResource):
                     return build_ret(ErrorMsg.Error, {"error": "指定的资产组不存在"})
                 old_array = scope.get("scope_array", [])
                 new_array = list(set(old_array) | domains)
+                old_domain_array = scope.get("domain_array")
+                if old_domain_array is None:
+                    old_domain_array = old_array if scope.get("scope_type", "domain") == "domain" else []
+                new_domain_array = list(set(old_domain_array) | domains)
                 conn_db('asset_scope').update_one(
                     {"_id": scope["_id"]},
                     {"$set": {
                         "scope_array": new_array,
-                        "scope": ",".join(new_array)
+                        "scope": ",".join(new_array),
+                        "domain_array": new_domain_array
                     }}
                 )
                 target_name = scope.get('name')
@@ -427,25 +432,32 @@ class IcpTaskSync(ARLResource):
                 if not target_name:
                     target_name = task.get('target', '未知公司')
 
-                # 检查是否同名
-                scope = conn_db('asset_scope').find_one({"name": target_name, "scope_type": "domain"})
+                # 检查是否同名，不再限制 scope_type
+                scope = conn_db('asset_scope').find_one({"name": target_name})
                 if scope:
                     old_array = scope.get("scope_array", [])
                     new_array = list(set(old_array) | domains)
+                    old_domain_array = scope.get("domain_array")
+                    if old_domain_array is None:
+                        old_domain_array = old_array if scope.get("scope_type", "domain") == "domain" else []
+                    new_domain_array = list(set(old_domain_array) | domains)
                     conn_db('asset_scope').update_one(
                         {"_id": scope["_id"]},
                         {"$set": {
                             "scope_array": new_array,
-                            "scope": ",".join(new_array)
+                            "scope": ",".join(new_array),
+                            "domain_array": new_domain_array
                         }}
                     )
                 else:
                     new_array = list(domains)
                     scope_data = {
                         "name": target_name,
-                        "scope_type": "domain",
+                        "scope_type": "mixed",
                         "scope": ",".join(new_array),
                         "scope_array": new_array,
+                        "domain_array": new_array,
+                        "ip_array": [],
                         "black_scope": "",
                         "black_scope_array": []
                     }

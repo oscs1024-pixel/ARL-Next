@@ -108,9 +108,9 @@ check_and_install_docker() {
     if command -v curl &>/dev/null || command -v wget &>/dev/null; then
         echo "🌐 正在通过 Docker 官方脚本下载并安装 Docker..."
         if command -v curl &>/dev/null; then
-            run_with_spinner "下载并运行 Docker 安装脚本" bash -c "curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun"
+            run_with_spinner "下载并运行 Docker 安装脚本" bash -c "curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun" || true
         else
-            run_with_spinner "下载并运行 Docker 安装脚本" bash -c "wget -qO- https://get.docker.com | bash -s docker --mirror Aliyun"
+            run_with_spinner "下载并运行 Docker 安装脚本" bash -c "wget -qO- https://get.docker.com | bash -s docker --mirror Aliyun" || true
         fi
         
         # 启动并使能 Docker 服务

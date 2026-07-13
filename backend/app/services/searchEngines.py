@@ -110,9 +110,14 @@ class BingSearch(object):
                 if result_num_2:
                     num = int("".join(result_num_2[0].split(",")))
                     self.search_result_num = num
+                elif 'id="b_results"' in html:
+                    self.search_result_num = self.page_num * 10
         else:
-            logger.warning("Unable to get bing search results， {}".format(self.keyword))
-            return 0
+            if 'id="b_results"' in html:
+                self.search_result_num = self.page_num * 10
+            else:
+                logger.warning("Unable to get bing search results， {}".format(self.keyword))
+                return 0
 
         return self.search_result_num
 
@@ -138,24 +143,50 @@ class BingSearch(object):
             return urls
 
         for page in range(1, min(int(self.search_result_num / 10) + 2, self.page_num + 1)):
-            if page == 1:
-                _urls = self.match_urls(self.first_html)
-                urls.extend(_urls)
-                logger.info("bing search first url result {}".format(len(_urls)))
-            else:
-                time.sleep(self.default_interval)
-                url = self.search_url.format(page=(page - 1) * 10, keyword=quote(self.keyword))
-                html = utils.http_req(url, headers=self.headers).text
-                _urls = self.match_urls(html)
-                logger.info("bing search url {}, result {}".format(url, len(_urls)))
-                urls.extend(_urls)
+            try:
+                if page == 1:
+                    _urls = self.match_urls(self.first_html)
+                    urls.extend(_urls)
+                    logger.info("bing search first url result {}".format(len(_urls)))
+                    if not _urls:
+                        break
+                else:
+                    time.sleep(self.default_interval)
+                    url = self.search_url.format(page=(page - 1) * 10, keyword=quote(self.keyword))
+                    html = utils.http_req(url, headers=self.headers).text
+                    _urls = self.match_urls(html)
+                    logger.info("bing search url {}, result {}".format(url, len(_urls)))
+                    if not _urls:
+                        break
+                    urls.extend(_urls)
+            except Exception as e:
+                logger.warning("bing search page {} failed: {}".format(page, e))
+                break
         return urls
 
 
 def so_search(domain, page_num=6):
+    urls = []
     keyword = "site:{}".format(domain)
     b = SoSearch(keyword, page_num)
-    urls = b.run()
+    urls.extend(b.run())
+
+    if len(urls) > 20:
+        keywords = ["admin", "管理|后台", "login", "api"]
+        for k in keywords:
+            keyword = "site:{} {}".format(domain, k)
+            try:
+                time.sleep(10)
+                b = SoSearch(keyword, page_num=1)
+                _new_urls = b.run()
+                if not _new_urls:
+                    # 如果抓不到内容大概率是被反爬拦截了，直接终止，保护IP
+                    break
+                urls.extend(_new_urls)
+            except Exception as e:
+                logger.warning(e)
+                break
+
     urls = [u for u in urls if domain in urlparse(u).netloc]
     return utils.rm_similar_url(urls)
 

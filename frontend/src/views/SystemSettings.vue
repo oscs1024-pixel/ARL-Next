@@ -3,108 +3,147 @@
     <h2 style="margin-bottom: 24px;">系统设置</h2>
     
     <a-tabs v-model:activeKey="activeKey">
-      <!-- 字典管理 Tab -->
+      <!-- 统一字典管理 Tab -->
       <a-tab-pane key="dictionary" tab="字典管理">
-        <a-spin :spinning="loading">
-          <div style="display: flex; gap: 24px; min-height: 500px;">
-            <!-- 左侧一键选择菜单 -->
-            <div style="width: 280px; flex-shrink: 0;">
-              <a-menu 
-                v-model:selectedKeys="selectedDictKeys" 
-                mode="inline" 
-                style="border-right: 1px solid #f0f0f0;"
-                @select="handleMenuSelect"
-              >
-                <a-menu-item-group v-for="(dicts, cat) in groupedDicts" :key="cat" :title="cat">
-                  <a-menu-item v-for="dict in dicts" :key="dict.name">
-                    <span style="font-size: 14px;">{{ dict.name }}</span>
-                    <span style="color: #aaa; font-size: 12px; margin-left: 8px;">{{ (dict.size / 1024).toFixed(1) }} KB</span>
-                  </a-menu-item>
-                </a-menu-item-group>
-              </a-menu>
-            </div>
-
-            <!-- 右侧操作区 -->
-            <div style="flex: 1; max-width: 800px;" v-if="selectedDict">
-              <!-- 搜索功能 -->
-              <div style="margin-bottom: 20px;">
-                <span style="margin-right: 16px; font-weight: bold;">字典条目搜索:</span>
-                <a-input-search
-                  v-model:value="searchKeyword"
-                  placeholder="精确匹配搜索条目是否存在"
-                  style="width: 300px"
-                  @search="handleSearch"
-                  :loading="searchLoading"
+        <a-spin :spinning="loading || bruteLoading">
+            <div style="display: flex; gap: 0; height: calc(100vh - 180px); min-height: 580px; border: 1px solid #f0f0f0; border-radius: 4px; overflow: hidden;"> <!-- 左侧语义化菜单与独立滚动 -->
+            <div style="width: 256px; flex-shrink: 0; border-right: 1px solid #f0f0f0; background: #fff; display: flex; flex-direction: column;">
+              <div style="padding: 16px; border-bottom: 1px solid #f5f5f5;">
+                <a-input-search v-model:value="menuSearch" placeholder="搜索字典名称..." style="width: 100%; border-radius: 4px;" />
+              </div>
+              <div style="flex: 1; overflow-y: auto;">
+                <a-menu
+                  v-model:selectedKeys="unifiedSelectedKeys"
+                  v-model:openKeys="menuOpenKeys"
+                  mode="inline"
+                  :style="{ borderRight: 'none' }"
+                  @select="handleUnifiedMenuSelect"
                 >
-                  <template #enterButton>
-                    <a-button type="primary">搜索</a-button>
-                  </template>
-                </a-input-search>
-                <div v-if="searchResult !== null" style="margin-top: 8px;">
-                  <div v-if="searchResult.length > 0" style="margin-bottom: 8px; color: #52c41a;">
-                    ✅ 找到 {{ searchResult.length }} 条包含该关键词的条目:
-                  </div>
-                  <div v-else style="margin-bottom: 8px; color: #ff4d4f;">
-                    ❌ 未找到包含该关键词的条目
-                  </div>
-                  
-                  <div v-if="searchResult.length > 0" style="max-height: 200px; overflow-y: auto; background: #fafafa; padding: 12px; border: 1px solid #f0f0f0; border-radius: 4px;">
-                    <div v-for="(item, idx) in searchResult" :key="idx" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px solid #f5f5f5;">
-                      <span style="font-family: monospace; word-break: break-all; font-size: 13px;">{{ item }}</span>
-                      <a-button 
-                        type="link" 
-                        danger 
-                        size="small" 
-                        @click="handleDeleteSingle(item)" 
-                        :loading="deleteLoading"
-                      >
-                        删除
-                      </a-button>
-                    </div>
-                  </div>
-                  <div v-if="searchResult.length === 100" style="color: #faad14; font-size: 12px; margin-top: 4px;">
-                    * 仅显示前 100 条匹配项，请细化搜索词。
-                  </div>
-                </div>
-              </div>
-
-              <!-- 预览区 -->
-              <div style="margin-bottom: 24px;">
-                <div style="margin-bottom: 8px; font-weight: bold;">
-                  字典内容预览 (显示前 {{ previewLimit }} 行, 总行数: {{ totalLines }}):
-                </div>
-                <a-textarea 
-                  v-model:value="previewContent" 
-                  :rows="12" 
-                  readonly 
-                  style="background-color: #f5f5f5;"
-                />
-              </div>
-
-              <!-- 新增与批量删除区 -->
-              <div style="margin-bottom: 24px;">
-                <div style="margin-bottom: 8px; font-weight: bold;">新增 / 批量删除条目 (每行一个):</div>
-                <a-textarea 
-                  v-model:value="newEntries" 
-                  :rows="6" 
-                  placeholder="输入要操作的条目，点击“追加保存”或“批量删除”..." 
-                />
-                <div style="margin-top: 16px; display: flex; gap: 12px;">
-                  <a-button type="primary" @click="handleAppend" :loading="submitLoading" :disabled="!newEntries.trim()">
-                    追加保存
-                  </a-button>
-                  <a-button danger @click="handleDeleteBatch" :loading="deleteLoading" :disabled="!newEntries.trim()">
-                    批量删除
-                  </a-button>
-                </div>
+                  <a-sub-menu v-for="group in filteredTreeData" :key="group.key">
+                    <template #title>
+                      <span style="font-weight: 600; color: #1f2329;">{{ group.title }}</span>
+                    </template>
+                    <a-menu-item v-for="item in group.children" :key="item.key" style="height: auto; line-height: normal; padding-top: 8px; padding-bottom: 8px;">
+                      <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <span style="color: #333; font-size: 13px; font-weight: 500;">{{ item.mainTitle }}</span>
+                        <span style="color: #8f959e; font-size: 11px;">{{ item.subTitle }}</span>
+                      </div>
+                    </a-menu-item>
+                  </a-sub-menu>
+                </a-menu>
               </div>
             </div>
-            
-            <div style="flex: 1; display: flex; align-items: center; justify-content: center; color: #999; font-size: 16px;" v-else>
-              👈 请在左侧菜单点击选择一个字典文件
+
+            <!-- 右侧统一操作面板 -->
+            <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column; min-width: 0; background: #fff;">
+
+              <!-- 未选中时占位（健康看板） -->
+              <div v-if="!unifiedSelectedType" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; gap: 16px; overflow-y: auto;">
+                <div style="font-size: 48px; margin-bottom: 8px;">📊</div>
+                <h3 style="margin: 0; color: #333; font-weight: bold;">字典库健康概览</h3>
+                <div style="display: flex; gap: 24px; margin-top: 16px;">
+                  <div style="text-align: center; background: #f0f5ff; padding: 20px 32px; border-radius: 8px; border: 1px solid #d6e4ff; min-width: 160px;">
+                    <div style="font-size: 28px; font-weight: bold; color: #1890ff;">{{ dictList.length }}</div>
+                    <div style="font-size: 13px; color: #555; margin-top: 6px;">核心资产字典数</div>
+                  </div>
+                  <div style="text-align: center; background: #fff7e6; padding: 20px 32px; border-radius: 8px; border: 1px solid #ffd8bf; min-width: 160px;">
+                    <div style="font-size: 28px; font-weight: bold; color: #fa8c16;">{{ bruteDictList.length }}</div>
+                    <div style="font-size: 13px; color: #555; margin-top: 6px;">弱口令字典数</div>
+                  </div>
+                </div>
+                <div style="font-size: 13px; color: #999; margin-top: 24px;">👈 请在左侧选择要管理的字典文件</div>
+              </div>
+
+              <!-- 统一操作面板（沉浸式预览与悬浮操作） -->
+              <div v-else style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                <!-- 头部标题与操作栏 -->
+                <div style="padding: 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: flex-start; background: #fff; flex-shrink: 0;">
+                   <div>
+                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                       <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2329;">{{ unifiedSelectedName }}</h3>
+                       <a-tag :color="unifiedSelectedType === 'asset' ? 'blue' : 'orange'" style="margin: 0;">
+                         {{ unifiedSelectedType === 'asset' ? '资产发现字典' : '弱口令字典' }}
+                       </a-tag>
+                     </div>
+                     <div style="color: #8f959e; font-size: 13px;">{{ unifiedSelectedDesc }} | 共 <span style="font-weight: 600; color: #333;">{{ totalLines }}</span> 行记录</div>
+                   </div>
+                   <div style="display: flex; gap: 12px;">
+                     <a-button @click="searchDrawerVisible = true">
+                       <template #icon><span style="margin-right:4px;">🔍</span></template> 检索与清理
+                     </a-button>
+                     <a-button type="primary" @click="appendDrawerVisible = true">
+                       <template #icon><span style="margin-right:4px;">➕</span></template> 追加数据
+                     </a-button>
+                   </div>
+                </div>
+                
+                <!-- 沉浸式内容预览 -->
+                <div style="flex: 1; overflow-y: auto; padding: 24px; background: #fcfcfc;">
+                   <div style="background: #fff; border-radius: 8px; border: 1px solid #f0f0f0; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                     <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; color: #333; line-height: 1.6; white-space: pre-wrap; word-break: break-all;">
+                       <div v-if="!previewContent" style="color: #bbb; text-align: center; padding: 60px 0;">该字典暂无内容</div>
+                       <template v-else>{{ previewContent }}</template>
+                     </div>
+                     <div v-if="totalLines > previewLimit" style="text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px dashed #eee; color: #999; font-size: 12px;">
+                       仅预览前 {{ previewLimit }} 行内容
+                     </div>
+                   </div>
+                </div>
+              </div>
+
             </div>
           </div>
         </a-spin>
+
+        <!-- 追加数据抽屉 -->
+        <a-drawer v-model:open="appendDrawerVisible" title="追加字典数据" placement="right" width="450">
+          <div style="margin-bottom: 12px; color: #555; font-size: 13px;">请粘贴要追加的条目（每行一个）：</div>
+          <a-textarea v-model:value="newEntries" :rows="25" placeholder="例如：
+admin
+root" style="font-family: monospace; font-size: 12px; margin-bottom: 24px;" />
+          <div style="display: flex; justify-content: flex-end; gap: 12px;">
+            <a-button @click="appendDrawerVisible = false">取消</a-button>
+            <a-button type="primary" @click="handleAppendAndClose" :loading="submitLoading" :disabled="!newEntries.trim()">提交保存</a-button>
+          </div>
+        </a-drawer>
+
+        <!-- 搜索清理抽屉 -->
+        <a-drawer v-model:open="searchDrawerVisible" title="检索与清理" placement="right" width="450">
+          <div style="margin-bottom: 24px;">
+            <div style="margin-bottom: 8px; font-weight: 500; font-size: 14px;">🎯 精准检索</div>
+            <a-input-search
+              v-model:value="searchKeyword"
+              placeholder="输入关键词精确搜索条目"
+              @search="handleSearch"
+              :loading="searchLoading"
+            >
+              <template #enterButton><a-button type="primary">搜索</a-button></template>
+            </a-input-search>
+            
+            <div v-if="searchResult !== null" style="margin-top: 12px;">
+              <div v-if="searchResult.length > 0" style="margin-bottom: 8px; color: #52c41a; font-size: 13px;">✅ 找到 {{ searchResult.length }} 条匹配项</div>
+              <div v-else style="margin-bottom: 8px; color: #ff4d4f; font-size: 13px;">❌ 未找到匹配条目</div>
+              <div v-if="searchResult.length > 0" style="max-height: 300px; overflow-y: auto;">
+                <div v-for="(item, idx) in searchResult" :key="idx" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid #f0f0f0; background: #fafafa; margin-bottom: 4px; border-radius: 4px;">
+                  <span style="font-family: monospace; font-size: 12px; word-break: break-all; color: #333;">{{ item }}</span>
+                  <a-button type="text" danger size="small" @click="handleDeleteSingle(item)" :loading="deleteLoading">删除</a-button>
+                </div>
+              </div>
+              <div v-if="searchResult.length === 100" style="color: #faad14; font-size: 12px; margin-top: 8px;">* 仅显示前 100 条，请细化关键词</div>
+            </div>
+          </div>
+          
+          <a-divider />
+          
+          <div>
+            <div style="margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #ff4d4f;">🗑️ 批量删除</div>
+            <div style="margin-bottom: 8px; color: #888; font-size: 12px;">输入要删除的准确条目，每行一个：</div>
+            <a-textarea v-model:value="batchDeleteEntries" :rows="10" placeholder="例如：
+admin123
+123456" style="font-family: monospace; font-size: 12px; margin-bottom: 16px;" />
+            <a-button danger block @click="handleDeleteBatchCustom" :loading="deleteLoading" :disabled="!batchDeleteEntries.trim()">执行批量删除</a-button>
+          </div>
+        </a-drawer>
       </a-tab-pane>
 
       <!-- CDN 字典管理 Tab -->
@@ -607,6 +646,14 @@ const searchLoading = ref(false);
 const submitLoading = ref(false);
 const deleteLoading = ref(false);
 
+const menuSearch = ref('');
+const menuOpenKeys = ref([]);
+const appendDrawerVisible = ref(false);
+const searchDrawerVisible = ref(false);
+const batchDeleteEntries = ref('');
+
+import { watch } from 'vue';
+
 const generalLoading = ref(false);
 const generalSaveLoading = ref(false);
 const activePushPanels = ref(['dingding', 'feishu', 'wxwork', 'telegram', 'email', 'webhook']);
@@ -735,19 +782,181 @@ const saveGeneralConfig = async () => {
 };
 
 const dictList = ref([]);
-const groupedDicts = computed(() => {
-  const groups = {};
+const selectedDict = ref(null);
+const bruteLoading = ref(false);
+const bruteDictList = ref([]);  // [{name, size}, ...]
+
+// ======================= 字典元数据配置 =======================
+const ASSET_DICT_META = {
+  'domain_2w.txt':       { label: '子域名爆破主字典 (2万)', group: '📍 子域名发现模块调用' },
+  'altdnsdict.txt':      { label: '子域名智能生成辅助词',   group: '📍 子域名发现模块调用' },
+  'dnsserver.txt':       { label: 'DNS 解析服务器列表',     group: '📍 子域名发现模块调用' },
+  'file_top_200.txt':    { label: 'Top 200 路径字典',       group: '📍 目录与文件泄露扫描调用' },
+  'file_top_2000.txt':   { label: 'Top 2000 路径字典',      group: '📍 目录与文件泄露扫描调用' },
+  'file_test.txt':       { label: '测试路径字典',           group: '📍 目录与文件泄露扫描调用' },
+  'port_top100.txt':     { label: '常用 100 端口',          group: '📍 端口扫描策略调用' },
+  'port_top1000.txt':    { label: '常用 1000 端口',         group: '📍 端口扫描策略调用' },
+  'port_custom.txt':     { label: '自定义端口',             group: '📍 端口扫描策略调用' },
+  'port_all.txt':        { label: '全端口 (1-65535)',       group: '📍 端口扫描策略调用' },
+  'port_test.txt':       { label: '测试端口',               group: '📍 端口扫描策略调用' },
+  'blackdomain.txt':     { label: '根域名爆破拦截字典',     group: '🛡️ 系统全局黑名单拦截' },
+  'black_asset_site.txt':{ label: '恶意/干扰站点拦截字典',  group: '🛡️ 系统全局黑名单拦截' },
+  'blackhexie.txt':      { label: '敏感词汇过滤字典',       group: '🛡️ 系统全局黑名单拦截' },
+};
+
+// 资产字典按调用方/使用地点分组
+const assetMenuGroups = computed(() => {
+  const groups = { '📍 子域名发现模块调用': [], '📍 目录与文件泄露扫描调用': [], '📍 端口扫描策略调用': [], '🛡️ 系统全局黑名单拦截': [], '其他（未分类调用）': [] };
   dictList.value.forEach(dict => {
-    const cat = dict.category || '其他 (Others)';
-    if (!groups[cat]) {
-      groups[cat] = [];
-    }
-    groups[cat].push(dict);
+    const meta = ASSET_DICT_META[dict.name];
+    const g = meta ? meta.group : '其他（未分类调用）';
+    if (!groups[g]) groups[g] = [];
+    // 覆盖默认的 name 为更友好的 label，如果没有则显示原名
+    groups[g].push({
+      ...dict,
+      title: meta ? meta.label : dict.name
+    });
   });
   return groups;
 });
-const selectedDictKeys = ref([]);
-const selectedDict = ref(null);
+
+// 弱口令字典：按服务名分组（提取 username_ssh.txt → SSH）
+const bruteSvcGroups = computed(() => {
+  const groups = {};
+  const SVC_LABEL = {
+    ssh: 'SSH', ftp: 'FTP', mysql: 'MySQL', redis: 'Redis', mongodb: 'MongoDB',
+    postgresql: 'PostgreSQL', sqlserver: 'SQL Server', rdp: 'RDP',
+    tomcat: 'Tomcat', jenkins: 'Jenkins', gitlab: 'GitLab', grafana: 'Grafana',
+    harbor: 'Harbor', nexus: 'Nexus', nacos: 'Nacos', apisix: 'APISIX',
+    activemq: 'ActiveMQ', openfire: 'OpenFire', manageiq: 'ManageIQ',
+    shiro: 'Shiro Key', imap: 'IMAP', pop3: 'POP3', smtp: 'SMTP',
+    exchange: 'Exchange', csts: 'CSTS', clickhouse: 'ClickHouse',
+    'alibaba-druid': 'Alibaba Druid'
+  };
+  bruteDictList.value.forEach(item => {
+    const m = item.name.match(/^(?:username|password)_(.+)\.txt$/);
+    if (!m) return;
+    const svcKey = m[1];
+    const svc = SVC_LABEL[svcKey] || svcKey.toUpperCase();
+    if (!groups[svc]) groups[svc] = [];
+    // username_* 排前面
+    if (item.name.startsWith('username_')) groups[svc].unshift(item);
+    else groups[svc].push(item);
+  });
+  return groups;
+});
+
+const treeData = computed(() => {
+  const data = [];
+  // 资产字典分组
+  Object.entries(assetMenuGroups.value).forEach(([group, items]) => {
+    if (items.length) {
+      const children = items.map(item => {
+        const friendly = item.title && item.title !== item.name ? item.title : item.name;
+        return {
+          mainTitle: friendly,
+          subTitle: item.name,
+          key: `asset__${item.name}`,
+        };
+      });
+      data.push({ title: group, key: `group_asset_${group}`, selectable: false, children });
+    }
+  });
+  // 弱口令字典分组（将所有协议合并到一个大组，极大提升简洁度）
+  const npocChildren = [];
+  Object.entries(bruteSvcGroups.value).forEach(([svc, items]) => {
+    if (items.length) {
+      items.forEach(item => {
+        // 自动将 username_/password_ 翻译为友好的中文前缀
+        let friendlyPrefix = '';
+        if (item.name.startsWith('username_')) friendlyPrefix = '账号字典';
+        else if (item.name.startsWith('password_')) friendlyPrefix = '密码字典';
+        else if (item.name.includes('common_')) friendlyPrefix = '通用弱口令';
+        
+        npocChildren.push({
+          mainTitle: `[${svc}] ${friendlyPrefix || item.name}`,
+          subTitle: item.name,
+          key: `brute__${item.name}`,
+        });
+      });
+    }
+  });
+  if (npocChildren.length > 0) {
+    data.push({ title: '🔑 NPoC 弱口令爆破', key: 'group_brute_all', selectable: false, children: npocChildren });
+  }
+  return data;
+});
+
+const filteredTreeData = computed(() => {
+  if (!menuSearch.value.trim()) return treeData.value;
+  const kw = menuSearch.value.toLowerCase();
+  return treeData.value.map(group => {
+    const matchedChildren = group.children.filter(c => 
+      (c.mainTitle && c.mainTitle.toLowerCase().includes(kw)) || 
+      (c.subTitle && c.subTitle.toLowerCase().includes(kw))
+    );
+    return { ...group, children: matchedChildren };
+  }).filter(group => group.children.length > 0);
+});
+
+watch(treeData, (newVal) => {
+  if (menuOpenKeys.value.length === 0 && newVal.length > 0) {
+    menuOpenKeys.value = newVal.map(g => g.key);
+  }
+}, { immediate: true });
+
+const handleUnifiedMenuSelect = ({ key }) => {
+  handleUnifiedSelect([key]);
+};
+
+const handleAppendAndClose = async () => {
+  await handleAppend();
+  appendDrawerVisible.value = false;
+};
+
+const handleDeleteBatchCustom = async () => {
+  newEntries.value = batchDeleteEntries.value;
+  await handleDeleteBatch();
+  batchDeleteEntries.value = '';
+};
+
+// 统一字典选择状态
+const unifiedSelectedKeys = ref([]);
+const unifiedSelectedType = ref('');  // 'asset' | 'brute'
+const unifiedSelectedName = ref('');
+const unifiedSelectedDesc = ref('');
+
+const handleUnifiedSelect = (selectedKeys, info) => {
+  console.log('handleUnifiedSelect called', selectedKeys, info);
+  const key = Array.isArray(selectedKeys) ? selectedKeys[0] : selectedKeys;
+  console.log('selected key resolved', key);
+  unifiedSelectedKeys.value = [key];
+  searchKeyword.value = '';
+  searchResult.value = null;
+  newEntries.value = '';
+  previewContent.value = '';
+  totalLines.value = 0;
+  if (key && key.startsWith('asset__')) {
+    const name = key.slice(7);
+    unifiedSelectedType.value = 'asset';
+    unifiedSelectedName.value = name;
+    unifiedSelectedDesc.value = ASSET_DICT_META[name] ? ASSET_DICT_META[name].label : '资产发现字典';
+    selectedDict.value = name;
+    fetchPreview(name);
+  } else if (key && key.startsWith('brute__')) {
+    const name = key.slice(7);
+    unifiedSelectedType.value = 'brute';
+    unifiedSelectedName.value = name;
+    unifiedSelectedDesc.value = name.startsWith('username_') ? '账号字典（用于弱口令爆破）' : '密码字典（用于弱口令爆破）';
+    selectedDict.value = name;
+    fetchPreview(name);
+  } else {
+    unifiedSelectedType.value = '';
+    unifiedSelectedName.value = '';
+    unifiedSelectedDesc.value = '';
+    selectedDict.value = null;
+  }
+};
 
 const previewContent = ref('');
 const totalLines = ref(0);
@@ -757,6 +966,11 @@ const searchKeyword = ref('');
 const searchResult = ref(null);
 
 const newEntries = ref('');
+
+// 根据当前选中类型返回 API 前缀
+const dictApiBase = computed(() =>
+  unifiedSelectedType.value === 'brute' ? '/api/brute_dict' : '/api/dictionary'
+);
 
 // 获取字典列表
 const fetchDictList = async () => {
@@ -776,12 +990,12 @@ const fetchDictList = async () => {
   }
 };
 
-// 获取预览
+// 获取预览（自动路由到对应 API）
 const fetchPreview = async (name) => {
   if (!name) return;
   loading.value = true;
   try {
-    const res = await request.get(`/api/dictionary/preview`, {
+    const res = await request.get(`${dictApiBase.value}/preview`, {
       params: { name, limit: previewLimit.value }
     });
     if (res.code === 200) {
@@ -798,16 +1012,7 @@ const fetchPreview = async (name) => {
   }
 };
 
-// 左侧菜单选择字典
-const handleMenuSelect = ({ key }) => {
-  selectedDict.value = key;
-  searchKeyword.value = '';
-  searchResult.value = null;
-  newEntries.value = '';
-  fetchPreview(key);
-};
-
-// 搜索功能
+// 搜索功能（自动路由）
 const handleSearch = async () => {
   if (!searchKeyword.value.trim()) {
     message.warning('请输入搜索关键词');
@@ -815,7 +1020,7 @@ const handleSearch = async () => {
   }
   searchLoading.value = true;
   try {
-    const res = await request.get('/api/dictionary/search', {
+    const res = await request.get(`${dictApiBase.value}/search`, {
       params: { name: selectedDict.value, keyword: searchKeyword.value }
     });
     if (res.code === 200) {
@@ -836,22 +1041,37 @@ const handleSearch = async () => {
   }
 };
 
-// 追加条目
+// 追加条目（自动路由）
 const handleAppend = async () => {
   if (!newEntries.value.trim()) return;
   
+  // 智能格式校验（阻断无效输入）
+  const lines = newEntries.value.split('\n').map(s => s.trim()).filter(s => s);
+  if (selectedDict.value && selectedDict.value.startsWith('port_')) {
+    const invalidPorts = lines.filter(p => !/^\d+$/.test(p) || parseInt(p) < 1 || parseInt(p) > 65535);
+    if (invalidPorts.length > 0) {
+      message.error(`校验失败：包含无效端口号 (如 ${invalidPorts[0]})，请输入 1-65535 之间的纯数字`);
+      return;
+    }
+  } else if (selectedDict.value && selectedDict.value.includes('domain')) {
+    const invalidDomains = lines.filter(d => /[\s,;!@#%^&*()<>{}\[\]]/.test(d));
+    if (invalidDomains.length > 0) {
+       message.error(`校验失败：子域名字典包含非法字符 (如空格或特殊符号)`);
+       return;
+    }
+  }
+
   submitLoading.value = true;
   try {
-    const res = await request.post('/api/dictionary/append', {
+    const res = await request.post(`${dictApiBase.value}/append`, {
       name: selectedDict.value,
       content: newEntries.value
     });
-    
     if (res.code === 200) {
       message.success(`保存成功！共提交 ${res.data.total_submitted} 项，实际追加新条目 ${res.data.added} 项。`);
-      newEntries.value = ''; // 清空输入框
-      // 刷新预览和大小
+      newEntries.value = '';
       fetchDictList();
+      fetchBruteDictList();
       fetchPreview(selectedDict.value);
     } else {
       message.error(res.message || '保存失败');
@@ -874,26 +1094,24 @@ const handleDeleteBatch = async () => {
 const handleDeleteSingle = async (item) => {
   if (!item) return;
   await deleteEntries(item);
-  // 删除成功后，从搜索结果列表中移除该条目
   if (searchResult.value) {
     searchResult.value = searchResult.value.filter(x => x !== item);
   }
 };
 
-// 公共删除逻辑
+// 公共删除逻辑（自动路由）
 const deleteEntries = async (content) => {
   deleteLoading.value = true;
   try {
-    const res = await request.post('/api/dictionary/delete_entries', {
+    const res = await request.post(`${dictApiBase.value}/delete_entries`, {
       name: selectedDict.value,
       content: content
     });
-    
     if (res.code === 200) {
       message.success(`删除成功！尝试删除 ${res.data.total_submitted} 项，实际成功删除 ${res.data.deleted} 项。`);
       newEntries.value = '';
-      // 刷新预览和大小
       fetchDictList();
+      fetchBruteDictList();
       fetchPreview(selectedDict.value);
     } else {
       message.error(res.message || '删除失败');
@@ -1130,8 +1348,29 @@ const savePerformanceConfig = async () => {
   }
 };
 
+// ======================= 弱口令字典管理逻辑 =======================
+// (Moved bruteLoading and bruteDictList to the top to avoid TDZ)
+
+const fetchBruteDictList = async () => {
+  bruteLoading.value = true;
+  try {
+    const res = await request.get('/api/brute_dict/list');
+    if (res.code === 200) {
+      bruteDictList.value = res.data || [];
+    } else {
+      message.error(res.message || '获取弱口令字典列表失败');
+    }
+  } catch (error) {
+    message.error('请求弱口令字典列表出错');
+    console.error(error);
+  } finally {
+    bruteLoading.value = false;
+  }
+};
+
 onMounted(() => {
   fetchDictList();
+  fetchBruteDictList();
   fetchCdnList();
   fetchSecurityPolicy();
   fetchPerformanceConfig();

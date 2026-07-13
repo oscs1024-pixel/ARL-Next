@@ -46,6 +46,21 @@ class ARLAssetScope(ARLResource):
         args = self.parser.parse_args()
         data = self.build_data(args=args, collection='asset_scope')
 
+        # 历史数据兼容：如果发现没有 domain_array 字段，说明是旧版结构，动态赋予它
+        for item in data.get("items", []):
+            if "domain_array" not in item:
+                st = item.get("scope_type")
+                sa = item.get("scope_array", [])
+                if st == AssetScopeType.DOMAIN:
+                    item["domain_array"] = sa
+                    item["ip_array"] = []
+                elif st == AssetScopeType.IP:
+                    item["domain_array"] = []
+                    item["ip_array"] = sa
+                else:
+                    item["domain_array"] = []
+                    item["ip_array"] = []
+
         return data
 
     @auth
@@ -58,49 +73,44 @@ class ARLAssetScope(ARLResource):
         name = args.pop('name')
         scope = args.pop('scope')
         black_scope = args.pop('black_scope')
-        scope_type = args.pop('scope_type')
-
-        # 1. 强制规范类型：如果前端乱传，强制设为 DOMAIN (域名) 类型
-        if scope_type not in [AssetScopeType.IP, AssetScopeType.DOMAIN]:
-            scope_type = AssetScopeType.DOMAIN
+        # scope_type 前端已不再强传，即使传了也仅作为冗余兜底
+        scope_type = args.pop('scope_type', "mixed")
 
         black_scope_array = []
-        # 2. 正则切割黑名单：把前端传的用逗号或空格隔开的长字符串，切成列表
         if black_scope:
             black_scope_array = re.split(r",|\s", black_scope)
 
-        # 3. 正则切割正常范围，并清理空字符 (比如用户多打了一个空格)
         scope_array = re.split(r",|\s", scope)
         scope_array = list(filter(None, scope_array))
 
         new_scope_array = []
-        # 4. 【核心验证】：遍历用户填的每一个目标，验证是不是真的合法
+        domain_array = []
+        ip_array = []
+
+        # 4. 【核心验证】：智能探测并分流
         for x in scope_array:
-            if scope_type == AssetScopeType.DOMAIN:
-                # 借助内置工具校验是不是合法域名
-                if not utils.is_valid_domain(x):
-                    return utils.build_ret(ErrorMsg.DomainInvalid, {"scope": x})
-
+            if utils.is_valid_domain(x):
                 new_scope_array.append(x)
-
-            if scope_type == AssetScopeType.IP:
-                # 借助内置工具校验并转换 IP (支持 192.168.1.1 这种单IP，也支持 192.168.1.0/24 这种网段)
+                domain_array.append(x)
+            else:
                 transfer = utils.ip.transfer_ip_scope(x)
-                if transfer is None:
-                    return utils.build_ret(ErrorMsg.ScopeTypeIsNotIP, {"scope": x})
+                if transfer is not None:
+                    new_scope_array.append(transfer)
+                    ip_array.append(transfer)
+                else:
+                    return utils.build_ret(ErrorMsg.DomainInvalid, {"scope": x, "error": "非法的域名或IP格式"})
 
-                new_scope_array.append(transfer)
-
-        # 如果清洗完发现全是废数据，直接打回
         if not new_scope_array:
             return utils.build_ret(ErrorMsg.DomainInvalid, {"scope": ""})
 
-        # 5. 组装数据并插入数据库
+        # 5. 组装数据，实行“双轨制”存储
         scope_data = {
             "name": name,
             "scope_type": scope_type,
-            "scope": ",".join(new_scope_array),        # 存一份字符串格式 (为了前端显示)
-            "scope_array": new_scope_array,            # 存一份列表格式 (为了后端程序方便比对)
+            "scope": ",".join(new_scope_array),
+            "scope_array": new_scope_array,
+            "domain_array": domain_array,
+            "ip_array": ip_array,
             "black_scope": black_scope,
             "black_scope_array": black_scope_array,
         }
@@ -153,8 +163,13 @@ class DeleteARLAssetScope(ARLResource):
         if scope not in scope_data.get("scope_array", []):
             return utils.build_ret(ErrorMsg.NotFoundScope, {"scope_id": scope_id, "scope":scope})
 
-        # 核心：操作 Python 列表剔除元素，再更新成字符串，最后整条替换数据库里的旧数据
+        # 核心：操作 Python 列表剔除元素，并同步剔除子轨道
         scope_data["scope_array"].remove(scope)
+        if "domain_array" in scope_data and scope in scope_data["domain_array"]:
+            scope_data["domain_array"].remove(scope)
+        if "ip_array" in scope_data and scope in scope_data["ip_array"]:
+            scope_data["ip_array"].remove(scope)
+
         scope_data["scope"] = ",".join(scope_data["scope_array"])
         utils.conn_db(self._table).find_one_and_replace(query, scope_data)
 
@@ -223,32 +238,35 @@ class AddARLAssetScope(ARLResource):
         if not scope_data:
             return utils.build_ret(ErrorMsg.NotFoundScopeID, {"scope_id": scope_id, "scope": scope})
 
-        scope_type = scope_data.get("scope_type")
-        if scope_type not in [AssetScopeType.IP, AssetScopeType.DOMAIN]:
-            scope_type = AssetScopeType.DOMAIN
+        # 兜底旧数据
+        if "domain_array" not in scope_data:
+            st = scope_data.get("scope_type")
+            sa = scope_data.get("scope_array", [])
+            scope_data["domain_array"] = list(sa) if st == AssetScopeType.DOMAIN else []
+            scope_data["ip_array"] = list(sa) if st == AssetScopeType.IP else []
 
         scope_array = re.split(r",|\s", scope)
-        # 清除空白符
         scope_array = list(filter(None, scope_array))
         if not scope_array:
             return utils.build_ret(ErrorMsg.DomainInvalid, {"scope": ""})
 
         for x in scope_array:
             new_scope = x
-            if scope_type == AssetScopeType.DOMAIN:
-                if not utils.is_valid_domain(x):
-                    return utils.build_ret(ErrorMsg.DomainInvalid, {"scope": x})
-
-            if scope_type == AssetScopeType.IP:
+            if utils.is_valid_domain(x):
+                if new_scope in scope_data.get("scope_array", []):
+                    return utils.build_ret(ErrorMsg.ExistScope, {"scope_id": scope_id, "scope": x})
+                scope_data["scope_array"].append(new_scope)
+                scope_data["domain_array"].append(new_scope)
+            else:
                 transfer = utils.ip.transfer_ip_scope(x)
-                if transfer is None:
-                    return utils.build_ret(ErrorMsg.ScopeTypeIsNotIP, {"scope": x})
-                new_scope = transfer
-
-            if new_scope in scope_data.get("scope_array", []):
-                return utils.build_ret(ErrorMsg.ExistScope, {"scope_id": scope_id, "scope": x})
-
-            scope_data["scope_array"].append(new_scope)
+                if transfer is not None:
+                    new_scope = transfer
+                    if new_scope in scope_data.get("scope_array", []):
+                        return utils.build_ret(ErrorMsg.ExistScope, {"scope_id": scope_id, "scope": x})
+                    scope_data["scope_array"].append(new_scope)
+                    scope_data["ip_array"].append(new_scope)
+                else:
+                    return utils.build_ret(ErrorMsg.DomainInvalid, {"scope": x, "error": "非法的域名或IP格式"})
 
         scope_data["scope"] = ",".join(scope_data["scope_array"])
         utils.conn_db(table).find_one_and_replace(query, scope_data)

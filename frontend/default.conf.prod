@@ -27,6 +27,14 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
+    # 针对 index.html 禁用缓存，确保每次加载最新的前端资源
+    location = /index.html {
+        root   /usr/share/nginx/html;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires 0;
+    }
+
     # 2. 动态 API 反向代理
     location /api/ {
         proxy_pass http://arl-web:5000/api/;

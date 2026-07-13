@@ -85,26 +85,33 @@ class AddARLScheduler(ARLResource):
             if task_options is None:
                 return utils.build_ret(ErrorMsg.PolicyIDNotFound, {"policy_id": policy_id})
 
-        # 资产范围类型（域名或者是IP）
-        scope_type = scope_data.get("scope_type")
-        if not scope_type:
-            scope_type = AssetScopeType.DOMAIN
-
         domains = domain.split(",")
-        for x in domains:
-            curr_domain = x.strip()
-            if curr_domain not in scope_data["scope_array"]:
-                return utils.build_ret(ErrorMsg.DomainNotFoundViaScope,
-                                       {"domain": curr_domain, "scope_id": scope_id})
+        domain_targets = []
+        ip_targets = []
 
-            if curr_domain in monitor_domain:
+        for x in domains:
+            curr_target = x.strip()
+            if not curr_target:
+                continue
+
+            if curr_target not in scope_data["scope_array"]:
+                return utils.build_ret(ErrorMsg.DomainNotFoundViaScope,
+                                       {"domain": curr_target, "scope_id": scope_id})
+
+            if curr_target in monitor_domain:
                 return utils.build_ret(ErrorMsg.DomainViaJob,
-                                       {"domain": curr_domain, "scope_id": scope_id})
+                                       {"domain": curr_target, "scope_id": scope_id})
+
+            if utils.is_valid_domain(curr_target):
+                domain_targets.append(curr_target)
+            else:
+                ip_targets.append(curr_target)
 
         ret_data = []
+
         # 下发 域名类型监控任务
-        if scope_type == AssetScopeType.DOMAIN:
-            for x in domains:
+        if domain_targets:
+            for x in domain_targets:
                 curr_name = name
                 if not name:
                     curr_name = "监控-{}-{}".format(scope_data["name"], x)
@@ -113,13 +120,13 @@ class AddARLScheduler(ARLResource):
 
                 job_id = app_scheduler.add_job(domain=x, scope_id=scope_id,
                                                options=task_options, interval=interval,
-                                               name=curr_name, scope_type=scope_type)
+                                               name=curr_name, scope_type=AssetScopeType.DOMAIN)
                 ret_data.append({"domain": x, "scope_id": scope_id, "job_id": job_id})
 
         # 下发IP 类型监控任务
-        if scope_type == AssetScopeType.IP:
+        if ip_targets:
             curr_name = name
-            ip_target = " ".join(domains)
+            ip_target = " ".join(ip_targets)
             if not name:
                 curr_name = "监控-{}-{}".format(scope_data["name"], ip_target)
 
@@ -127,7 +134,7 @@ class AddARLScheduler(ARLResource):
 
             job_id = app_scheduler.add_job(domain=ip_target, scope_id=scope_id,
                                            options=task_options, interval=interval,
-                                           name=curr_name, scope_type=scope_type)
+                                           name=curr_name, scope_type=AssetScopeType.IP)
             ret_data.append({"domain": ip_target, "scope_id": scope_id, "job_id": job_id})
 
         return utils.build_ret(ErrorMsg.Success, ret_data)

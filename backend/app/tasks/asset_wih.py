@@ -68,8 +68,13 @@ class AssetWihUpdateTask(CommonTask):
         if not scope_data:
             return
 
-        if scope_data.get("scope_type") != "domain":
-            return
+        domain_array = scope_data.get("domain_array")
+        if domain_array is None:
+            if scope_data.get("scope_type") != "domain":
+                return
+        else:
+            if not domain_array:
+                return
 
         domains = []
         for item in self.wih_results:

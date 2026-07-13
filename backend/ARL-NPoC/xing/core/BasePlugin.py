@@ -23,6 +23,13 @@ class BasePlugin:
         self.scheme = None
         self.vul_name = None
         self.interact = False
+        
+        # 富文本详情元数据
+        self.severity = None
+        self.description = None
+        self.remediation = None
+        self.references = []
+        self.author = None
 
     def verify(self, target):
         """

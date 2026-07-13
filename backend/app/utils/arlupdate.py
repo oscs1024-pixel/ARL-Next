@@ -43,6 +43,7 @@ def create_index():
         "asset_cip": "scope_id",
         "asset_nuclei_result": "scope_id",
         "asset_stat_finger": "scope_id",
+        "poc": "plugin_name",
     }
     for table in index_map:
         if isinstance(index_map[table], list):

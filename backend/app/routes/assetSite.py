@@ -73,9 +73,7 @@ class ARLAssetSite(ARLResource):
         if not scope_data:
             return utils.build_ret(ErrorMsg.NotFoundScopeID, {"scope_id": scope_id})
 
-        scope_type = scope_data.get("scope_type", "domain")
-        if scope_type == "ip":
-            return utils.build_ret(ErrorMsg.AddAssetSiteNotSupportIP, {})
+
 
         sites = target2list(site)
         if not sites:

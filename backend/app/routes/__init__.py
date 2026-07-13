@@ -89,9 +89,23 @@ class ARLResource(Resource):
             # 2. 特殊处理 MongoDB 的主键 _id:必须把字符串转换成专属的 ObjectID 类型
             if key == '_id':
                 if args[key]:
-                    query_args[key] = ObjectId(args[key])
-
+                    try:
+                        # 如果长度刚好 24 位，尝试精确匹配
+                        if len(args[key]) == 24:
+                            query_args[key] = ObjectId(args[key])
+                        else:
+                            # 支持模糊匹配，利用 MongoDB 4.0+ 的 $expr, $indexOfCP 和 $toString
+                            query_args["$expr"] = {
+                                "$gte": [
+                                    {"$indexOfCP": [{"$toString": "$_id"}, args[key].lower()]},
+                                    0
+                                ]
+                            }
+                    except Exception:
+                        # 如果不是合法的 ObjectId，直接存原字符串，MongoDB查不到即可
+                        query_args[key] = args[key]
                 continue
+
 
             # 3. 忽略空值（前端传了字段但没给值的，不管它）
             if args[key] is None:
@@ -597,6 +611,7 @@ from .dictionary import ns as dictionary_ns
 from .cdn_dict import ns as cdn_dict_ns
 from .system_config import ns as system_config_ns
 from .icp import ns as icp_ns
+from .brute_dict import ns as brute_dict_ns
 
 
 from .assetCert import ns as asset_cert_ns

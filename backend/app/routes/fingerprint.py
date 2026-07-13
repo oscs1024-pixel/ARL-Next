@@ -61,6 +61,10 @@ class ARLFingerprint(ARLResource):
         if have_human_rule_from_db(human_rule):
             return utils.build_ret(ErrorMsg.RuleAlreadyExists, {"rule": human_rule})
 
+        # 增加名称重复检测，避免抛出 500 DuplicateKeyError
+        if utils.conn_db('fingerprint').find_one({"name": name}):
+            return utils.build_ret(ErrorMsg.Error, {"msg": f"指纹名称 '{name}' 已存在，请勿重复添加。如果规则不同，请尝试修改原指纹。"})
+
         flag, err = check_expression_with_error(human_rule)
         if not flag:
             return utils.build_ret(ErrorMsg.RuleInvalid, {"error": str(err)})
@@ -213,8 +217,9 @@ class UploadARLFinger(ARLResource):
             if not isinstance(obj, list):
                 return utils.build_ret(ErrorMsg.Error, {'msg': "not list obj"})
 
-            # Pre-fetch existing rules for in-memory deduplication (massively improves speed)
+            # 修复名称重复导致的上传中断：预拉取存在的名称
             existing_rules = {doc.get('human_rule') for doc in utils.conn_db('fingerprint').find({}, {"human_rule": 1})}
+            existing_names = {doc.get('name') for doc in utils.conn_db('fingerprint').find({}, {"name": 1})}
 
             error_cnt = 0
             success_cnt = 0
@@ -234,7 +239,7 @@ class UploadARLFinger(ARLResource):
                     error_cnt += 1
                     continue
 
-                if human_rule in existing_rules:
+                if human_rule in existing_rules or rule_name in existing_names:
                     repeat_cnt += 1
                     continue
 
@@ -245,10 +250,15 @@ class UploadARLFinger(ARLResource):
                 })
                 # Prevent duplicates within the uploaded file itself
                 existing_rules.add(human_rule)
+                existing_names.add(rule_name)
                 success_cnt += 1
 
             if new_docs:
-                utils.conn_db('fingerprint').insert_many(new_docs)
+                from pymongo.errors import BulkWriteError
+                try:
+                    utils.conn_db('fingerprint').insert_many(new_docs, ordered=False)
+                except BulkWriteError:
+                    pass # Safely ignore duplicates during concurrent writes
 
             return utils.build_ret(ErrorMsg.Success, {'error_cnt': error_cnt,
                                                       'repeat_cnt': repeat_cnt,'success_cnt': success_cnt})

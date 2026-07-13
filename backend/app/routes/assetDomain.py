@@ -86,18 +86,22 @@ class ARLAssetDomain(ARLResource):
         if not scope_data:
             return utils.build_ret(ErrorMsg.NotFoundScopeID, {"scope_id": scope_id})
 
-        # 3. 校验资产组类型：目前只允许往“域名类型”的资产组里加子域名
-        scope_type = scope_data.get("scope_type", "domain")
-        if scope_type != 'domain':
-            return utils.build_ret(ErrorMsg.Error, {"error": "目前仅域名资产组可添加子域名"})
+        # 兜底旧数据结构
+        if "domain_array" not in scope_data:
+            st = scope_data.get("scope_type")
+            sa = scope_data.get("scope_array", [])
+            scope_data["domain_array"] = sa if st == 'domain' else []
+
+        if not scope_data.get("domain_array"):
+            return utils.build_ret(ErrorMsg.Error, {"error": "该资产组不包含任何合法主域名，无法添加子域名"})
 
         domain_in_scope_list = []   # 用来装“已经存在”的域名
         add_domain_list = []      # 用来装“真正需要添加”的新域名
 
         # 4. 挨个审查用户提交的域名
         for domain in domain_list:
-            # 【越权防御】：提取主域名 (get_fld)，如果这个域名根本不属于该资产组的允许范围，直接报错打回！
-            if utils.get_fld(domain) not in scope_data["scope"]:
+            # 【越权防御】：检查将要添加的 domain 是否从属于 domain_array 中的任何一个目标范围内
+            if not utils.domain.is_in_scopes(domain, scope_data.get("domain_array", [])):
                 return utils.build_ret(ErrorMsg.DomainNotFoundViaScope, {"domain": domain})
 
             # 查重：去数据库看看这个域名是不是已经在这个资产组里了

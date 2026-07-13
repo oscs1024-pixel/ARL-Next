@@ -143,12 +143,7 @@
           :wrapper-col="{ span: 18 }"
           style="margin-top: 20px;"
       >
-        <a-form-item label="IP类别" name="scope_type">
-          <a-select v-model:value="addForm.scope_type" placeholder="请选择类别">
-            <a-select-option value="domain">域名</a-select-option>
-            <a-select-option value="ip">IP</a-select-option>
-          </a-select>
-        </a-form-item>
+
 
         <a-form-item label="资产组名称" name="name">
           <a-input v-model:value="addForm.name" placeholder="请输入资产组名称" />
@@ -158,7 +153,7 @@
           <a-textarea
               v-model:value="addForm.scope"
               :rows="4"
-              placeholder="请输入资产范围，多个请用逗号或换行分隔"
+              placeholder="请输入资产范围（支持同时混填 IP 与域名，如: 1.1.1.1, baidu.com），多个请用逗号或换行分隔"
           />
         </a-form-item>
       </a-form>
@@ -191,7 +186,7 @@
           <a-textarea
               v-model:value="addScopeForm.scope"
               :rows="4"
-              placeholder="请输入资产范围（如：frebuff.com），多个请用逗号或换行分隔"
+              placeholder="请输入资产范围（支持同时混填 IP 与域名，如: 1.1.1.1, frebuff.com），多个请用逗号或换行分隔"
           />
         </a-form-item>
       </a-form>
@@ -322,21 +317,18 @@ const addFormRef = ref();
 
 // 表单数据绑定
 const addForm = reactive({
-  scope_type: 'domain', // 默认选中"域名"
   name: '',
   scope: ''
 });
 
 // 必填项校验规则
 const addRules = {
-  scope_type: [{ required: true, message: '请选择IP类别', trigger: 'change' }],
   name: [{ required: true, message: '请输入资产组名称', trigger: 'blur' }],
   scope: [{ required: true, message: '请输入资产范围', trigger: 'blur' }]
 };
 
 // 打开弹窗并重置表单
 const openAddModal = () => {
-  addForm.scope_type = 'domain';
   addForm.name = '';
   addForm.scope = '';
   addModalVisible.value = true;

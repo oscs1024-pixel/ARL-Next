@@ -93,6 +93,14 @@ class NPoC(object):
             info["scheme"] = ",".join(p.scheme)
             info["vul_name"] = p.vul_name
             info["plugin_type"] = p.plugin_type
+            
+            # 提取富文本元数据
+            info["severity"] = getattr(p, "severity", "")
+            info["description"] = getattr(p, "description", "")
+            info["remediation"] = getattr(p, "remediation", "")
+            info["references"] = getattr(p, "references", [])
+            info["author"] = getattr(p, "author", "")
+
 
             if p.plugin_type == PluginType.POC:
                 info["category"] = PoCCategory.POC
@@ -118,11 +126,13 @@ class NPoC(object):
             new = old.copy()
             plugin_name = old["plugin_name"]
             new["update_date"] = utils.curr_date()
-            if plugin_name in self.db_plugin_name_list:
-                continue
 
-            logger.info("insert {} info to db".format(plugin_name))
-            utils.conn_db('poc').insert_one(new)
+            logger.info("upsert {} info to db".format(plugin_name))
+            utils.conn_db('poc').update_one(
+                {"plugin_name": plugin_name}, 
+                {"$set": new}, 
+                upsert=True
+            )
 
         return True
 
@@ -131,6 +141,16 @@ class NPoC(object):
             if name not in self.plugin_name_list:
                 query = {"plugin_name": name}
                 utils.conn_db('poc').delete_one(query)
+                # 级联清理 policy 表中的幽灵引用
+                utils.conn_db('policy').update_many(
+                    {},
+                    {
+                        "$pull": {
+                            "policy.poc_config": {"plugin_name": name},
+                            "policy.brute_config": {"plugin_name": name}
+                        }
+                    }
+                )
 
         return True
 

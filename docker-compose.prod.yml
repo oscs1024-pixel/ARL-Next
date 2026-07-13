@@ -37,6 +37,7 @@ services:
     volumes:
       - arl_screenshots:/code/backend/app/tmp_screenshot
       - arl_poc_plugins:/code/backend/ARL-NPoC/xing/plugins
+      - arl_poc_dicts:/code/backend/ARL-NPoC/xing/dicts
     environment:
       - TZ=Asia/Shanghai
       - DEBIAN_FRONTEND=noninteractive
@@ -59,6 +60,7 @@ services:
     volumes:
       - arl_screenshots:/code/backend/app/tmp_screenshot
       - arl_poc_plugins:/code/backend/ARL-NPoC/xing/plugins
+      - arl_poc_dicts:/code/backend/ARL-NPoC/xing/dicts
     environment:
       - TZ=Asia/Shanghai
       - DEBIAN_FRONTEND=noninteractive
@@ -120,3 +122,4 @@ volumes:
   rabbitmq_data:
   arl_screenshots:
   arl_poc_plugins:
+  arl_poc_dicts:

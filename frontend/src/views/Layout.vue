@@ -13,11 +13,11 @@
         <a-menu-item key="/taskList"><GlobalOutlined /><span>任务管理</span></a-menu-item>
         <a-menu-item key="/asset-search"><SearchOutlined /><span>资产搜索</span></a-menu-item>
         <a-menu-item key="/assetsMonitor"><DesktopOutlined /><span>资产监控</span></a-menu-item>
-        <a-menu-item key="/policy"><SettingOutlined /><span>策略配置</span></a-menu-item>
-        <a-menu-item key="/fingerprint"><TagsOutlined /><span>指纹管理</span></a-menu-item>
-        <a-menu-item key="/pocList"><BugOutlined /><span>PoC信息</span></a-menu-item>
         <a-menu-item key="/planningTasks"><ClockCircleOutlined /><span>计划任务</span></a-menu-item>
         <a-menu-item key="/GitHubTasks/GitHubTasksList"><GithubOutlined /><span>GitHub监控</span></a-menu-item>
+        <a-menu-item key="/pocList"><BugOutlined /><span>POC管理</span></a-menu-item>
+        <a-menu-item key="/fingerprint"><TagsOutlined /><span>指纹管理</span></a-menu-item>
+        <a-menu-item key="/policy"><SettingOutlined /><span>策略配置</span></a-menu-item>
         <a-menu-item key="/systemSettings"><SettingOutlined /><span>系统设置</span></a-menu-item>
       </a-menu>
     </a-layout-sider>
@@ -126,11 +126,11 @@ const currentPageTitle = computed(() => {
     '/taskList': '任务管理',
     '/asset-search': '资产搜索',
     '/assetsMonitor': '资产监控',
-    '/policy': '策略配置',
-    '/fingerprint': '指纹管理',
-    '/pocList': 'PoC信息',
     '/planningTasks': '计划任务',
     '/GitHubTasks/GitHubTasksList': 'GitHub监控',
+    '/policy': '策略配置',
+    '/pocList': 'POC管理',
+    '/fingerprint': '指纹管理',
     '/systemSettings': '系统设置',
   };
   return titleMap[route.path] || 'ARL-Next';

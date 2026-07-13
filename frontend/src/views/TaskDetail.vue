@@ -44,18 +44,34 @@
             v-else-if="field.hasOperatorSelect"
             style="display: flex; align-items: center; border: 1px solid #d9d9d9; border-radius: 2px; width: 280px; background: #fff;"
         >
-          <a-input
-              v-model:value="searchForm[field.key]"
-              :placeholder="`请输入${field.label}`"
-              :bordered="false"
-              style="flex: 1; box-shadow: none;"
-              allowClear
-              @pressEnter="onSearch"
-          >
-            <template #suffix>
-              <search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" />
-            </template>
-          </a-input>
+          <template v-if="field.type === 'select'">
+            <a-select
+                v-model:value="searchForm[field.key]"
+                :placeholder="`请选择${field.label}`"
+                :bordered="false"
+                style="flex: 1; box-shadow: none;"
+                allowClear
+                @change="onSearch"
+            >
+              <a-select-option v-for="opt in field.options" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </a-select-option>
+            </a-select>
+          </template>
+          <template v-else>
+            <a-input
+                v-model:value="searchForm[field.key]"
+                :placeholder="`请输入${field.label}`"
+                :bordered="false"
+                style="flex: 1; box-shadow: none;"
+                allowClear
+                @pressEnter="onSearch"
+            >
+              <template #suffix>
+                <search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" />
+              </template>
+            </a-input>
+          </template>
           <div style="width: 1px; height: 16px; background-color: #d9d9d9;"></div>
           <a-select
               v-model:value="field.operator"
@@ -512,7 +528,7 @@ const searchForm = ref({});
 const pagination = reactive({ current: 1, pageSize: 10, total: 0 });
 
 // 💥 核心修改 3：在配置字典中加入 deleteUrl
-const tabConfig = {
+const tabConfig = reactive({
   site: {
     url: '/site/',
     deleteUrl: '/site/delete/',
@@ -665,8 +681,27 @@ const tabConfig = {
       { label: 'URL', key: 'url', operator: '=' },
       { label: '标题', key: 'title', operator: '=' },
       { label: '状态码', key: 'status_code', operator: '=' },
-      { label: 'body 长度', key: 'content_length', operator: '=' },
-      { label: '来源', key: 'source', operator: '=' }
+      { 
+        label: 'body 长度', 
+        key: 'content_length', 
+        operator: '等于',
+        hasOperatorSelect: true,
+        operators: ['等于', '大于', '小于']
+      },
+      { 
+        label: '来源', 
+        key: 'source', 
+        type: 'select',
+        options: [
+          { label: '爬虫(site_spider)', value: 'site_spider' },
+          { label: '搜索引擎(search_engine)', value: 'search_engine' },
+          { label: 'AlienVault', value: 'alienvault' },
+          { label: 'WaybackMachine', value: 'waybackmachine' },
+          { label: 'CommonCrawl', value: 'commoncrawl' },
+          { label: 'Fuzz', value: 'fuzz' }
+        ],
+        operator: '=' 
+      }
     ],
     cols: [
       { title: '序号', key: 'index', width: 60, align: 'center' },
@@ -788,10 +823,7 @@ const tabConfig = {
       {
         label: '记录类型',
         key: 'record_type',
-        // 🚨 核心修改：移除 type: 'select'，加入这三个属性触发高级组合框
-        operator: '包含',
-        hasOperatorSelect: true,
-        operators: ['包含', '不包含', '不等于']
+        operator: '='
       },
       { label: '内容', key: 'content', operator: '=' },
       { label: '来源 JS', key: 'source', operator: '=' },
@@ -823,7 +855,7 @@ const tabConfig = {
       { title: '详细信息', key: 'syslog_message', width: 500 }
     ]
   }
-};
+});
 
 const columns = ref(tabConfig.site.cols);
 

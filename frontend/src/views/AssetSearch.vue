@@ -38,18 +38,34 @@
             v-else-if="field.hasOperatorSelect"
             style="display: flex; align-items: center; border: 1px solid #d9d9d9; border-radius: 2px; width: 280px; background: #fff;"
         >
-          <a-input
-              v-model:value="searchForm[field.key]"
-              :placeholder="`请输入${field.label}`"
-              :bordered="false"
-              style="flex: 1; box-shadow: none;"
-              allowClear
-              @pressEnter="onSearch"
-          >
-            <template #suffix>
-              <search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" />
-            </template>
-          </a-input>
+          <template v-if="field.type === 'select'">
+            <a-select
+                v-model:value="searchForm[field.key]"
+                :placeholder="`请选择${field.label}`"
+                :bordered="false"
+                style="flex: 1; box-shadow: none;"
+                allowClear
+                @change="onSearch"
+            >
+              <a-select-option v-for="opt in field.options" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </a-select-option>
+            </a-select>
+          </template>
+          <template v-else>
+            <a-input
+                v-model:value="searchForm[field.key]"
+                :placeholder="`请输入${field.label}`"
+                :bordered="false"
+                style="flex: 1; box-shadow: none;"
+                allowClear
+                @pressEnter="onSearch"
+            >
+              <template #suffix>
+                <search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" />
+              </template>
+            </a-input>
+          </template>
           <div style="width: 1px; height: 16px; background-color: #d9d9d9;"></div>
           <a-select
               v-model:value="field.operator"
@@ -113,12 +129,12 @@
               <a-tag v-if="record.is_entry || record.isEntry" closable style="background: #fafafa; color: #666; border-color: #d9d9d9;">入口</a-tag>
 
               <template v-for="(t, idx) in (record.tags || record.tag || [])" :key="idx">
-                <a-tag closable style="background: #fafafa; color: #666; border-color: #d9d9d9;">
+                <a-tag closable style="background: #fafafa; color: #666; border-color: #d9d9d9;" @close.prevent="handleRemoveTag(record, t)">
                   {{ typeof t === 'string' ? t : (t.name || t.tag_name || t) }}
                 </a-tag>
               </template>
 
-              <span class="add-tag">添加标签</span>
+              <span class="add-tag" @click="openTagModal(record)" style="cursor: pointer;">添加标签</span>
             </div>
           </div>
         </template>
@@ -347,6 +363,13 @@
     </a-modal>
 
   </div>
+
+    <!-- 添加标签弹窗 -->
+    <a-modal v-model:open="tagVisible" title="添加标签" @ok="submitTag" :confirmLoading="tagSubmitLoading" width="400px" okText="确 定" cancelText="取 消">
+      <div style="margin-top: 20px;">
+        <a-input v-model:value="newTagValue" placeholder="请输入标签名称" />
+      </div>
+    </a-modal>
 </template>
 
 <script setup>
@@ -368,18 +391,17 @@ const previewImage = ref('');
 const handlePreview = (url) => { previewImage.value = url; previewVisible.value = true; };
 
 // 💡 简化版 Config：仅保留全局搜索需要的配置，去除 deleteUrl
-const tabConfig = {
+const tabConfig = reactive({
   site: {
     url: '/site/',
     searchFields: [
       { label: '站点', key: 'site', operator: '=' },
-      { label: '主机名', key: 'hostname', operator: '=' },
       { label: '标题', key: 'title', operator: '=' },
-      { label: 'Web Server', key: 'server', operator: '=' },
-      { label: '状态码', key: 'status_code', operator: '=' },
+      { label: 'Web Server', key: 'http_server', operator: '=' },
+      { label: '状态码', key: 'status', operator: '=' },
       { label: '标头', key: 'headers', operator: '=' },
       { label: '指纹', key: 'finger', operator: '=' },
-      { label: 'favicon hash', key: 'favicon_hash', operator: '=' },
+      { label: 'favicon hash', key: 'favicon.hash', operator: '=' },
       { label: '标签', key: 'tag', operator: '=' }
     ],
     // 💥 修复：删除了瞎加的 IP、端口和操作列，完全对齐原版站点表格！表格控制
@@ -515,8 +537,27 @@ const tabConfig = {
       { label: 'URL', key: 'url', operator: '=' },
       { label: '标题', key: 'title', operator: '=' },
       { label: '状态码', key: 'status_code', operator: '=' },
-      { label: 'body 长度', key: 'content_length', operator: '=' },
-      { label: '来源', key: 'source', operator: '=' }
+      { 
+        label: 'body 长度', 
+        key: 'content_length', 
+        operator: '等于',
+        hasOperatorSelect: true,
+        operators: ['等于', '大于', '小于']
+      },
+      { 
+        label: '来源', 
+        key: 'source', 
+        type: 'select',
+        options: [
+          { label: '爬虫(site_spider)', value: 'site_spider' },
+          { label: '搜索引擎(search_engine)', value: 'search_engine' },
+          { label: 'AlienVault', value: 'alienvault' },
+          { label: 'WaybackMachine', value: 'waybackmachine' },
+          { label: 'CommonCrawl', value: 'commoncrawl' },
+          { label: 'Fuzz', value: 'fuzz' }
+        ],
+        operator: '=' 
+      }
     ],
     cols: [
       { title: '序号', key: 'index', width: 60, align: 'center' },
@@ -634,10 +675,7 @@ const tabConfig = {
       {
         label: '记录类型',
         key: 'record_type',
-        // 🚨 核心修改：移除 type: 'select'，加入这三个属性触发高级组合框
-        operator: '包含',
-        hasOperatorSelect: true,
-        operators: ['包含', '不包含', '不等于']
+        operator: '='
       },
       { label: '内容', key: 'content', operator: '=' },
       { label: '来源 JS', key: 'source', operator: '=' },
@@ -651,7 +689,7 @@ const tabConfig = {
       { title: '来源站点', dataIndex: 'site', key: 'site', width: 250 }
     ]
   }
-};
+});
 
 const columns = ref(tabConfig.site.cols);
 
@@ -665,7 +703,15 @@ const fetchData = async () => {
     const params = { page: pagination.current, size: pagination.pageSize };
     for (const key in searchForm.value) {
       if (searchForm.value[key] !== '' && searchForm.value[key] != null) {
-        params[key] = searchForm.value[key];
+        let paramKey = key;
+        const fieldConfig = config.searchFields.find(f => f.key === key);
+        if (fieldConfig && fieldConfig.hasOperatorSelect) {
+          if (fieldConfig.operator === '大于') paramKey += '__gt';
+          else if (fieldConfig.operator === '小于') paramKey += '__lt';
+          else if (fieldConfig.operator === '不等于') paramKey += '__neq';
+          else if (fieldConfig.operator === '不包含') paramKey += '__not';
+        }
+        params[paramKey] = searchForm.value[key];
       }
     }
     const res = await request.get(config.url, { params });
@@ -689,7 +735,15 @@ const handleExport = async () => {
     const params = { page: 1, size: 100000 };
     for (const key in searchForm.value) {
       if (searchForm.value[key] !== '' && searchForm.value[key] != null) {
-        params[key] = searchForm.value[key];
+        let paramKey = key;
+        const fieldConfig = config.searchFields.find(f => f.key === key);
+        if (fieldConfig && fieldConfig.hasOperatorSelect) {
+          if (fieldConfig.operator === '大于') paramKey += '__gt';
+          else if (fieldConfig.operator === '小于') paramKey += '__lt';
+          else if (fieldConfig.operator === '不等于') paramKey += '__neq';
+          else if (fieldConfig.operator === '不包含') paramKey += '__not';
+        }
+        params[paramKey] = searchForm.value[key];
       }
     }
     const res = await request.get(config.exportUrl, { params, responseType: 'blob' });
@@ -794,6 +848,61 @@ const submitRiskTask = async () => {
   } catch (error) { message.error('下发异常'); }
   finally { riskSubmitLoading.value = false; }
 };
+
+// 标签管理逻辑
+const tagVisible = ref(false);
+const tagSubmitLoading = ref(false);
+const newTagValue = ref('');
+const currentTagRecord = ref(null);
+
+const openTagModal = (record) => {
+  currentTagRecord.value = record;
+  newTagValue.value = '';
+  tagVisible.value = true;
+};
+
+const submitTag = async () => {
+  if (!newTagValue.value.trim()) {
+    return message.warning('标签名称不能为空');
+  }
+  tagSubmitLoading.value = true;
+  try {
+    const res = await request.post('/site/add_tag/', {
+      _id: currentTagRecord.value._id || currentTagRecord.value.id,
+      tag: newTagValue.value.trim()
+    });
+    if (res.code === 200) {
+      message.success('添加标签成功');
+      tagVisible.value = false;
+      fetchData(); // 重新加载数据
+    } else {
+      message.error(res.message || '添加标签失败');
+    }
+  } catch (error) {
+    message.error('请求异常');
+  } finally {
+    tagSubmitLoading.value = false;
+  }
+};
+
+const handleRemoveTag = async (record, tag) => {
+  const tagStr = typeof tag === 'string' ? tag : (tag.name || tag.tag_name || tag);
+  try {
+    const res = await request.post('/site/delete_tag/', {
+      _id: record._id || record.id,
+      tag: tagStr
+    });
+    if (res.code === 200) {
+      message.success('删除标签成功');
+      fetchData();
+    } else {
+      message.error(res.message || '删除标签失败');
+    }
+  } catch (error) {
+    message.error('请求异常');
+  }
+};
+
 </script>
 
 <style scoped>
