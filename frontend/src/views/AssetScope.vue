@@ -1,27 +1,27 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
 
     <div style="margin-bottom: 24px;">
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openAddModal">新建资产分组</a-button>
+      <a-button type="primary" @click="openAddModal">新建资产分组</a-button>
     </div>
 
     <div class="search-row" style="margin-bottom: 16px;">
       <div class="search-item">
         <span class="label">资产组名称：</span>
         <a-input v-model:value="searchForm.name" placeholder="请输入资产组名称进行搜索" style="width: 220px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
         <span class="label">资产范围：</span>
         <a-input v-model:value="searchForm.scope" placeholder="请输入资产范围进行搜索" style="width: 220px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
         <span class="label">资产范围ID：</span>
         <a-input v-model:value="searchForm._id" placeholder="请输入资产范围ID进行搜索" style="width: 220px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
     </div>
@@ -66,7 +66,7 @@
                 v-for="(item, idx) in (record.scope_array || []).slice(0, 5)"
                 :key="idx"
                 closable
-                style="background: #fafafa; color: #666; border-color: #d9d9d9; margin-right: 0;"
+                style="background: var(--arl-bg-light); color: var(--arl-text-color); border-color: var(--arl-border-color); margin-right: 0;"
                 @close="handleRemoveScope(record, item)"
             >
               {{ item }}
@@ -78,14 +78,14 @@
                       v-for="(item, idx) in record.scope_array.slice(5)"
                       :key="idx"
                       closable
-                      style="background: #fafafa; color: #666; border-color: #d9d9d9; margin-right: 0;"
+                      style="background: var(--arl-bg-light); color: var(--arl-text-color); border-color: var(--arl-border-color); margin-right: 0;"
                       @close="handleRemoveScope(record, item)"
                   >
                     {{ item }}
                   </a-tag>
                 </div>
               </template>
-              <a-tag style="background: #fff; border-style: dashed; cursor: pointer; margin-right: 0;">
+              <a-tag style="background: var(--arl-bg-white); border-style: dashed; cursor: pointer; margin-right: 0;">
                 +{{ record.scope_array.length - 5 }} 更多
               </a-tag>
             </a-popover>
@@ -94,13 +94,13 @@
 
         <template v-else-if="column.key === 'scope_id'">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span
-                style="color: #00bcd4; cursor: pointer; user-select: none;"
+            <a
+                style="cursor: pointer; user-select: none;"
                 @click="copyText(record.scope_array ? record.scope_array.join('\n') : '')"
             >
               复制
-            </span>
-            <span style="color: #00bcd4; cursor: pointer;" @click="goToDetail(record)">{{ record._id }}</span>
+            </a>
+            <a style="cursor: pointer;" @click="goToDetail(record)">{{ record._id }}</a>
           </div>
         </template>
 
@@ -121,7 +121,7 @@
     </a-table>
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" @showSizeChange="handleTableChange" />
     </div>
 
@@ -179,7 +179,7 @@
           style="margin-top: 20px;"
       >
         <a-form-item label="资产组名称" style="margin-bottom: 8px;">
-          <span style="color: rgba(0,0,0,0.85);">{{ currentRecord?.name || '-' }}</span>
+          <span style="color: var(--arl-text-color);">{{ currentRecord?.name || '-' }}</span>
         </a-form-item>
 
         <a-form-item label="资产范围" name="scope">
@@ -679,5 +679,5 @@ watch(() => route.query.scope_id, (newScopeId) => {
 <style scoped>
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 4px; white-space: nowrap; }
+.search-item .label { color: var(--arl-text-color); margin-right: 4px; white-space: nowrap; }
 </style>

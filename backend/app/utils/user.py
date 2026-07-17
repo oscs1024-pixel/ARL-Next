@@ -58,6 +58,13 @@ def user_logout(token):
     if user_login_header():
         conn_db('user').update_one({"token": token}, {"$set": {"token": None}})
 
+def user_refresh_token(token):
+    if user_login_header():
+        new_token = gen_md5(random_choices(50))
+        conn_db('user').update_one({"token": token}, {"$set": {"token": new_token}})
+        return new_token
+    return None
+
 
 def change_pass(token, old_password, new_password):
     query = {"token": token, "password": gen_md5(salt + old_password)}

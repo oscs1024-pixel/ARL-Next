@@ -5,3 +5,137 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
 }
+
+/* =========================================================
+   全局现代化视觉优化
+========================================================= */
+
+/* 1. 极致纤细的现代化自适应滚动条 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: var(--arl-border-color);
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--arl-theme-color);
+}
+
+/* 2. 卡片全局悬浮微交互 (Hover 悬浮反馈) */
+.ant-card {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+.ant-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+html[data-theme="dark"] .ant-card:hover, body[style*="background-color: rgb(20, 20, 20)"] .ant-card:hover, .ant-card:hover {
+    /* The above shadow is standard, but in dark mode we might want a slightly different shadow or keep it subtle */
+}
+
+
+/* 3. 表格行悬浮的主题色微光 (Table Row Themed Hover) */
+/* 使用现代 CSS color-mix 函数将十六进制主题色与透明度混合，提取12%的透明底色 */
+.ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > td,
+.ant-table-tbody > tr.ant-table-row:hover > td,
+.ant-table-tbody > tr.ant-table-row-hover > td {
+    background: color-mix(in srgb, var(--arl-theme-color) 12%, transparent) !important;
+    transition: background-color 0.2s ease !important;
+}
+
+/* =========================================================
+   护眼与高级排版优化 (Eye Care & Typography Polish)
+========================================================= */
+
+/* 1. 全局字重瘦身 (Reduce bold glaring text to Medium 500) */
+/* 统一消除极其刺眼的 700 bold 字重，最高上限使用 500 */
+h1, h2, h3, h4, h5, h6, 
+.ant-statistic-title, 
+.ant-statistic-content-value, 
+strong, b, .ant-typography strong {
+    font-weight: 500 !important;
+}
+
+/* 2. 在暗黑模式下进一步降低高对比度边框的刺眼感 */
+html[data-theme="dark"] .ant-card, 
+html[data-theme="dark"] .ant-table,
+html[data-theme="dark"] .ant-menu {
+    border-color: #303030 !important;
+}
+
+/* =========================================================
+   Geek Slate Radii & Diffuse Shadows (兼顾护眼与高级科技感)
+========================================================= */
+/* 1. 大圆角 */
+.ant-card, .ant-modal-content, .ant-table-wrapper {
+    border-radius: 12px !important;
+}
+
+/* 2. 弥散阴影 */
+/* 浅色模式阴影：大范围，低透明度，非常柔和 */
+.ant-card {
+    border: none !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01) !important;
+}
+.ant-card:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* 暗黑模式阴影：因为背景深，需要加重阴影透明度才能有立体感，同时卡片颜色比底色浅 */
+html[data-theme="dark"] .ant-card,
+body[style*="background-color: rgb(15, 23, 42)"] .ant-card,
+body[style*="background-color: #0f172a"] .ant-card {
+    border: 1px solid #1e293b !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2) !important;
+}
+html[data-theme="dark"] .ant-card:hover,
+body[style*="background-color: rgb(15, 23, 42)"] .ant-card:hover,
+body[style*="background-color: #0f172a"] .ant-card:hover {
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4) !important;
+    border-color: var(--arl-theme-color) !important;
+}
+
+/* 统一暗黑模式的表格和悬浮背景为高级深蓝灰 */
+html[data-theme="dark"] .ant-table-tbody > tr:hover > td,
+body[style*="background-color: #0f172a"] .ant-table-tbody > tr:hover > td {
+    background: color-mix(in srgb, var(--arl-theme-color) 15%, #1e293b) !important;
+}
+
+/* 4. 彻底接管 Ant Design 布局和菜单背景 */
+.ant-layout {
+    background: var(--arl-bg-layout) !important;
+}
+.ant-menu-dark, .ant-menu-dark .ant-menu-sub {
+    background: #0b1120 !important;
+}
+
+/* 5. 全局文本选中颜色优化，跟随主题色 */
+::selection {
+    background: var(--arl-theme-color);
+    color: #ffffff;
+}
+::-moz-selection {
+    background: var(--arl-theme-color);
+    color: #ffffff;
+}
+
+/* 6. 全局弹窗背景毛玻璃特效 (Premium Modal Blur Mask) */
+.ant-modal-mask, .ant-drawer-mask, .ant-image-preview-mask {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    background-color: rgba(0, 0, 0, 0.45) !important;
+}
+
+/* 7. 表头 (Table Header) 深度定制，完美适配 Slate 冰霜冷灰调 */
+.ant-table-thead > tr > th {
+    background: var(--arl-bg-light) !important;
+    border-bottom: 1px solid var(--arl-border-color) !important;
+    font-weight: 500 !important;
+}

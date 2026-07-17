@@ -3,6 +3,10 @@ server {
     http2        on;
     server_name  localhost;
 
+    # 开启 HTTP Basic Auth 阻挡被动扫描
+    auth_basic "Restricted Access - AntiScan";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+
     ssl_certificate      /certs/arl.crt;
     ssl_certificate_key  /certs/arl.key;
 
@@ -46,6 +50,7 @@ server {
 
     # 2. 动态 API 反向代理
     location /api/ {
+        auth_basic off; # API 采用自带 Token 鉴权，关闭基础认证避免拦截脚本和 MCP 服务
         proxy_pass http://arl-web:5000/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -55,6 +60,7 @@ server {
 
     # 3. 代理更新服务 SSE (解决 Mixed Content 与跨域端口屏蔽问题)
     location /update_stream/ {
+        auth_basic off;
         proxy_pass http://172.18.0.1:8888/update/;
         proxy_http_version 1.1;
         proxy_set_header Connection "";

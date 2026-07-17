@@ -310,6 +310,14 @@ fi
 # （旧版镜像预拉取函数已废除，转为基于阿里云仓库全量拉取）
 
 # 4. 从阿里云镜像仓库极速拉取并启动生产服务
+echo "🔒 正在检查基础防护机制 (Basic Auth)..."
+if [ ! -f "./frontend/.htpasswd" ]; then
+    echo "⚠️ 提示：未检测到 ./frontend/.htpasswd 文件，正在生成默认防扫描凭证..."
+    mkdir -p ./frontend
+    echo 'admin:$apr1$i/Qqu0mp$6rhjb2tWaFFEqpeDcr4Su/' > ./frontend/.htpasswd
+    echo "✅ 已生成默认 Basic Auth 凭证: 账号 admin / 密码 arl_next"
+fi
+
 echo "🐳 正在从阿里云镜像库极速拉取最新构建..."
 docker compose -f docker-compose.prod.yml pull
 

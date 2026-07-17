@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
 
         <a-tabs v-model:activeKey="activeTab" type="card" class="arl-detail-tabs">
       <a-tab-pane key="site" tab="站点"></a-tab-pane>
@@ -36,7 +36,7 @@
 
         <div
             v-else-if="field.hasOperatorSelect"
-            style="display: flex; align-items: center; border: 1px solid #d9d9d9; border-radius: 2px; width: 280px; background: #fff;"
+            style="display: flex; align-items: center; border: 1px solid var(--arl-border-color); border-radius: 2px; width: 280px; background: var(--arl-bg-white);"
         >
           <template v-if="field.type === 'select'">
             <a-select
@@ -62,11 +62,11 @@
                 @pressEnter="onSearch"
             >
               <template #suffix>
-                <search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" />
+                <search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" />
               </template>
             </a-input>
           </template>
-          <div style="width: 1px; height: 16px; background-color: #d9d9d9;"></div>
+          <div style="width: 1px; height: 16px; background-color: var(--arl-border-color);"></div>
           <a-select
               v-model:value="field.operator"
               :bordered="false"
@@ -86,7 +86,7 @@
             @pressEnter="onSearch"
         >
           <template #suffix>
-            <search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" />
+            <search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" />
           </template>
         </a-input>
       </div>
@@ -94,8 +94,8 @@
 
     <div style="margin-bottom: 16px;">
       <a-button style="margin-right: 16px;" @click="resetSearch">清 除</a-button>
-      <a-button v-if="tabConfig[activeTab]?.exportName" type="primary" style="background-color: #00bcd4; border-color: #00bcd4; margin-right: 16px;" @click="handleExport">导出{{ tabConfig[activeTab].exportName }}</a-button>
-      <a-button v-if="activeTab === 'site'" type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openRiskModal">风险任务下发</a-button>
+      <a-button v-if="tabConfig[activeTab]?.exportName" type="primary" style="margin-right: 16px;" @click="handleExport">导出{{ tabConfig[activeTab].exportName }}</a-button>
+      <a-button v-if="activeTab === 'site'" type="primary" @click="openRiskModal">风险任务下发</a-button>
     </div>
 
     <a-table
@@ -109,12 +109,12 @@
     >
             <template #bodyCell="{ column, record, index }">
         <template v-if="column.key === 'index'">
-          <span style="color: #00bcd4;">{{ (pagination.current - 1) * pagination.pageSize + index + 1 }}</span>
+          <a style="">{{ (pagination.current - 1) * pagination.pageSize + index + 1 }}</a>
         </template>
 <!--表格-站点列-->
         <template v-else-if="column.key === 'site'">
           <div class="site-header">
-            <a :href="record.site || record.url" target="_blank" style="color: #00bcd4; font-weight: 500;">
+            <a :href="record.site || record.url" target="_blank" style="font-weight: 500;">
               <img v-if="record.favicon && record.favicon.data" :src="`data:image/png;base64,${record.favicon.data}`" class="site-img" />
               <img v-else-if="typeof record.favicon === 'string'" :src="`data:image/png;base64,${record.favicon}`" class="site-img" />
 
@@ -126,10 +126,10 @@
 
             <div class="mt5" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
 
-              <a-tag v-if="record.is_entry || record.isEntry" closable style="background: #fafafa; color: #666; border-color: #d9d9d9;">入口</a-tag>
+              <a-tag v-if="record.is_entry || record.isEntry" closable style="background: var(--arl-bg-light); color: var(--arl-text-color); border-color: var(--arl-border-color);">入口</a-tag>
 
               <template v-for="(t, idx) in (record.tags || record.tag || [])" :key="idx">
-                <a-tag closable style="background: #fafafa; color: #666; border-color: #d9d9d9;" @close.prevent="handleRemoveTag(record, t)">
+                <a-tag closable style="background: var(--arl-bg-light); color: var(--arl-text-color); border-color: var(--arl-border-color);" @close.prevent="handleRemoveTag(record, t)">
                   {{ typeof t === 'string' ? t : (t.name || t.tag_name || t) }}
                 </a-tag>
               </template>
@@ -161,7 +161,7 @@
 
 
         <template v-else-if="column.key === 'screenshot'">
-          <img v-if="record.screenshot" :src="`/api${record.screenshot}`" style="width: 280px; height: 160px; object-fit: cover; object-position: top; cursor: pointer; border: 1px solid #f0f0f0; border-radius: 4px;" @click="handlePreview(`/api${record.screenshot}`)" />
+          <img v-if="record.screenshot" :src="`/api${record.screenshot}`" style="width: 280px; height: 160px; object-fit: cover; object-position: top; cursor: pointer; border: 1px solid var(--arl-border-color); border-radius: 4px;" @click="handlePreview(`/api${record.screenshot}`)" />
           <span v-else>-</span>
         </template>
 <!--        插槽-->
@@ -186,7 +186,7 @@
 
               <div style="cursor: pointer;">
                 <div v-for="(ip, i) in record.ips.slice(0, 5)" :key="i">{{ ip }}</div>
-                <div style="color: #999; margin-top: 2px;">...等 {{ record.ips.length }} 个</div>
+                <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 2px;">...等 {{ record.ips.length }} 个</div>
               </div>
             </a-tooltip>
 
@@ -212,7 +212,7 @@
               </template>
               <div style="cursor: pointer;">
                 <div v-for="(dom, i) in record.domain.slice(0, 5)" :key="i">{{ dom }}</div>
-                <div style="color: #999; margin-top: 2px;">...等 {{ record.domain.length }} 个</div>
+                <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 2px;">...等 {{ record.domain.length }} 个</div>
               </div>
             </a-tooltip>
             <div v-else>
@@ -235,50 +235,50 @@
           <span>{{ record.ip }}:{{ record.port }}</span>
         </template>
         <template v-else-if="column.key === 'cert_detail'">
-          <div v-if="record.cert" style="font-size: 13px; line-height: 1.8; color: #333; padding: 12px 0;">
+          <div v-if="record.cert" style="font-size: 13px; line-height: 1.8; color: var(--arl-text-color); padding: 12px 0;">
 
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">基本信息</div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">主题名称</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.subject_dn || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.subject_dn || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">签发者名称</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.issuer_dn || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.issuer_dn || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">使用者备用名称</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.extensions?.subjectAltName || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.extensions?.subjectAltName || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">序列号</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.serial_number || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.serial_number || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 16px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">时间</div>
-              <div style="flex: 1; color: #555;">{{ record.cert.validity?.start || '-' }} 至 {{ record.cert.validity?.end || '-' }}</div>
+              <div style="flex: 1; color: var(--arl-text-color);">{{ record.cert.validity?.start || '-' }} 至 {{ record.cert.validity?.end || '-' }}</div>
             </div>
 
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">指纹</div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">SHA-256</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.fingerprint?.sha256 || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.fingerprint?.sha256 || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">SHA-1</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.fingerprint?.sha1 || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.fingerprint?.sha1 || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">MD5</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.fingerprint?.md5 || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.fingerprint?.md5 || '-' }}</div>
             </div>
 
           </div>
@@ -303,37 +303,37 @@
         </template>
 
         <template v-else-if="column.key === 'fileleak_url' || column.key === 'url_link' || column.key === 'nuclei_vuln_url'">
-          <a :href="record.url || record.vuln_url" target="_blank" style="color: #00bcd4; word-break: break-all;">
+          <a :href="record.url || record.vuln_url" target="_blank" style="word-break: break-all;">
             {{ record.url || record.vuln_url || '-' }}
           </a>
         </template>
 
         <template v-else-if="column.key === 'verify_data'">
-          <div style="max-height: 100px; overflow-y: auto; color: #d93026; font-family: monospace; font-size: 12px; word-break: break-all;">
+          <div style="max-height: 100px; overflow-y: auto; color: #e57373; font-family: monospace; font-size: 12px; word-break: break-all;">
             {{ record.verify_data || record.proof || '-' }}
           </div>
         </template>
 
         <template v-else-if="column.key === 'ip_count_col'">
-          <span style="color: #00bcd4; cursor: pointer;">{{ record.ip_count || 0 }}</span>
+          <a style="cursor: pointer;">{{ record.ip_count || 0 }}</a>
         </template>
 
         <template v-else-if="column.key === 'domain_count_col'">
-          <span style="color: #00bcd4; cursor: pointer;">{{ record.domain_count || 0 }}</span>
+          <a style="cursor: pointer;">{{ record.domain_count || 0 }}</a>
         </template>
 
         <template v-else-if="column.key === 'verify_command'">
-          <div style="max-height: 100px; overflow-y: auto; background: #f5f5f5; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; word-break: break-all;">
+          <div style="max-height: 100px; overflow-y: auto; background: var(--arl-bg-light); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; word-break: break-all;">
             {{ record.verify_command || record.curl_command || '-' }}
           </div>
         </template>
 
         <template v-else-if="column.key === 'finger_name'">
-          <span style="color: #00bcd4; cursor: pointer;">{{ record.name || '-' }}</span>
+          <a style="cursor: pointer;">{{ record.name || '-' }}</a>
         </template>
 
         <template v-else-if="column.key === 'wih_source'">
-          <div style="word-break: break-all; color: #333; line-height: 1.6;">
+          <div style="word-break: break-all; color: var(--arl-text-color); line-height: 1.6;">
             {{ record.source || '-' }}
           </div>
         </template>
@@ -342,7 +342,7 @@
     </a-table>
 
     <div v-if="tabConfig[activeTab]" style="display: flex; justify-content: space-between; align-items: center; padding: 0 16px; margin-top: 16px;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" @showSizeChange="handleTableChange" />
     </div>
 
@@ -358,7 +358,7 @@
         <a-form-item label="任务名称" name="name" :rules="[{ required: true, message: '请输入任务名称' }]">
           <a-input v-model:value="riskForm.name" />
         </a-form-item>
-        <div style="margin-left: 104px; color: rgba(0,0,0,0.85); margin-top: 16px;">目标：选择目标数 {{ targetCount }}</div>
+        <div style="margin-left: 104px; color: var(--arl-text-color); margin-top: 16px;">目标：选择目标数 {{ targetCount }}</div>
       </a-form>
     </a-modal>
 
@@ -400,7 +400,13 @@ const tabConfig = reactive({
       { label: 'Web Server', key: 'http_server', operator: '=' },
       { label: '状态码', key: 'status', operator: '=' },
       { label: '标头', key: 'headers', operator: '=' },
-      { label: '指纹', key: 'finger', operator: '=' },
+      { 
+        label: '指纹', 
+        key: 'finger', 
+        operator: '模糊匹配',
+        hasOperatorSelect: true,
+        operators: ['模糊匹配', '精确匹配']
+      },
       { label: 'favicon hash', key: 'favicon.hash', operator: '=' },
       { label: '标签', key: 'tag', operator: '=' }
     ],
@@ -655,7 +661,13 @@ const tabConfig = reactive({
     deleteUrl: '/site/delete/', // 视后端情况，如果报错可改为 '/site/delete/'
     // 🚨 截图显示无导出按钮
     searchFields: [
-      { label: 'finger', key: 'name', operator: '=' } // 后端字段是 name
+      { 
+        label: 'finger', 
+        key: 'name', 
+        operator: '模糊匹配',
+        hasOperatorSelect: true,
+        operators: ['模糊匹配', '精确匹配']
+      } // 后端字段是 name
     ],
     cols: [
       { title: '序号', key: 'index', width: 80, align: 'center' },
@@ -710,6 +722,7 @@ const fetchData = async () => {
           else if (fieldConfig.operator === '小于') paramKey += '__lt';
           else if (fieldConfig.operator === '不等于') paramKey += '__neq';
           else if (fieldConfig.operator === '不包含') paramKey += '__not';
+          else if (fieldConfig.operator === '精确匹配') paramKey += '__eq';
         }
         params[paramKey] = searchForm.value[key];
       }
@@ -742,6 +755,7 @@ const handleExport = async () => {
           else if (fieldConfig.operator === '小于') paramKey += '__lt';
           else if (fieldConfig.operator === '不等于') paramKey += '__neq';
           else if (fieldConfig.operator === '不包含') paramKey += '__not';
+          else if (fieldConfig.operator === '精确匹配') paramKey += '__eq';
         }
         params[paramKey] = searchForm.value[key];
       }
@@ -908,23 +922,23 @@ const handleRemoveTag = async (record, tag) => {
 <style scoped>
 .site-header { line-height: 1.5; }
 .site-img { width: 16px; height: 16px; margin-right: 8px; vertical-align: middle; }
-.site-word { color: rgba(0, 0, 0, 0.85) !important; font-size: 14px !important; margin-top: 4px; margin-bottom: 0; line-height: 1.5; }
-.add-tag { color: #666; cursor: pointer; font-size: 12px; margin-left: 8px; border: 1px dashed #d9d9d9; padding: 0 7px; border-radius: 2px; background: #fafafa; transition: all 0.3s; }
-.add-tag:hover { color: #00bcd4; border-color: #00bcd4; }
+.site-word { color: var(--arl-text-color) !important; font-size: 14px !important; margin-top: 4px; margin-bottom: 0; line-height: 1.5; }
+.add-tag { color: var(--arl-text-color); cursor: pointer; font-size: 12px; margin-left: 8px; border: 1px dashed var(--arl-border-color); padding: 0 7px; border-radius: 2px; background: var(--arl-bg-light); transition: all 0.3s; }
+.add-tag:hover {  }
 .mt5 { margin-top: 5px; }
 
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 24px; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 8px; min-width: 80px; text-align: right; }
+.search-item .label { color: var(--arl-text-color); margin-right: 8px; min-width: 80px; text-align: right; }
 
 .scroll-x { background: transparent; border: none; padding: 8px; width: 100%; max-width: 600px; overflow-x: auto; overflow-y: hidden; }
-.scroll-x pre { margin: 0; padding: 0; background-color: transparent; border: none; font-family: Consolas, Menlo, Courier, monospace; font-size: 12px; line-height: 1.5; color: rgba(0, 0, 0, 0.65); white-space: pre; word-wrap: normal; }
+.scroll-x pre { margin: 0; padding: 0; background-color: transparent; border: none; font-family: Consolas, Menlo, Courier, monospace; font-size: 12px; line-height: 1.5; color: var(--arl-text-color); opacity: 0.65; white-space: pre; word-wrap: normal; }
 .scroll-x::-webkit-scrollbar { height: 6px; }
 .scroll-x::-webkit-scrollbar-track { background: transparent; }
 .scroll-x::-webkit-scrollbar-thumb { background-color: rgba(144, 147, 153, 0.3); border-radius: 4px; }
 .scroll-x::-webkit-scrollbar-thumb:hover { background-color: rgba(144, 147, 153, 0.6); }
 
-:deep(.ant-tabs-card-bar .ant-tabs-tab) { border-radius: 2px 2px 0 0 !important; margin-right: 4px !important; border: 1px solid #e8e8e8 !important; background: #fafafa !important; transition: all 0.3s; }
-:deep(.ant-tabs-card-bar .ant-tabs-tab-active) { background: #fff !important; border-bottom-color: transparent !important; color: #00bcd4 !important; font-weight: 500; }
-:deep(.ant-tabs-tab:hover) { color: #00bcd4 !important; }
+:deep(.ant-tabs-card-bar .ant-tabs-tab) { border-radius: 2px 2px 0 0 !important; margin-right: 4px !important; border: 1px solid var(--arl-border-color) !important; background: var(--arl-bg-light) !important; transition: all 0.3s; }
+:deep(.ant-tabs-card-bar .ant-tabs-tab-active) { background: var(--arl-bg-white) !important; border-bottom-color: transparent !important;  font-weight: 500; }
+:deep(.ant-tabs-tab:hover) {  }
 </style>

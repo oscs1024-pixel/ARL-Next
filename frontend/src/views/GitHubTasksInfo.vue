@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
     <div style="margin-bottom: 16px;">
       <a-button @click="goBack" style="margin-right: 16px;">
         <template #icon><left-outlined /></template>
@@ -11,23 +11,23 @@
       
       <!-- ================= Tab 1: 扫描结果 ================= -->
       <a-tab-pane key="result" tab="扫描结果">
-        <div class="search-row" style="margin-bottom: 16px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+        <div class="search-row" style="margin-bottom: 16px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
           <div class="search-item">
             <span class="label">路径名：</span>
             <a-input v-model:value="searchForm.path" placeholder="请输入路径名进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-              <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+              <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
             </a-input>
           </div>
           <div class="search-item">
             <span class="label">仓库名：</span>
             <a-input v-model:value="searchForm.repo_full_name" placeholder="请输入仓库名进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-              <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+              <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
             </a-input>
           </div>
           <div class="search-item">
             <span class="label">内容：</span>
             <a-input v-model:value="searchForm.human_content" placeholder="请输入内容进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-              <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+              <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
             </a-input>
           </div>
         </div>
@@ -43,23 +43,23 @@
         >
           <template #emptyText>
             <div style="padding: 40px 0;">
-              <inbox-outlined style="font-size: 48px; color: #d9d9d9;" />
-              <div style="color: #999; margin-top: 8px;">暂无数据</div>
+              <inbox-outlined style="font-size: 48px; color: var(--arl-border-color);" />
+              <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 8px;">暂无数据</div>
             </div>
           </template>
           <template #bodyCell="{ column, record, text }">
             <template v-if="column.key === 'repo_full_name'">
-              <a :href="`https://github.com/${record.repo_full_name}`" target="_blank" style="color: #00bcd4; word-break: break-all; font-weight: 500;">
+              <a :href="`https://github.com/${record.repo_full_name}`" target="_blank" style="word-break: break-all; font-weight: 500;">
                 {{ record.repo_full_name }}
               </a>
             </template>
             <template v-else-if="column.key === 'path'">
-              <a :href="record.html_url" target="_blank" style="color: #00bcd4; word-break: break-all;">
+              <a :href="record.html_url" target="_blank" style="word-break: break-all;">
                 {{ record.path }}
               </a>
             </template>
             <template v-else-if="column.key === 'human_content'">
-              <div style="white-space: pre-wrap; word-break: break-word; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; max-height: 300px; overflow-y: auto; background: #fafafa; padding: 12px; border-radius: 6px; border: 1px solid #f0f0f0; font-size: 13px; line-height: 1.5715; color: #333; margin: 4px 0;">
+              <div style="white-space: pre-wrap; word-break: break-word; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace; max-height: 300px; overflow-y: auto; background: var(--arl-bg-light); padding: 12px; border-radius: 6px; border: 1px solid var(--arl-border-color); font-size: 13px; line-height: 1.5715; color: var(--arl-text-color); margin: 4px 0;">
                 {{ record.human_content }}
               </div>
             </template>
@@ -73,19 +73,19 @@
         </a-table>
 
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
-          <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+          <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
           <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" />
         </div>
       </a-tab-pane>
 
       <!-- ================= Tab 2: 执行日志 ================= -->
       <a-tab-pane key="log" tab="任务日志">
-        <div style="border: 1px solid #e8e8e8; border-radius: 4px; padding: 8px; background-color: #fafafa;">
+        <div style="border: 1px solid var(--arl-border-color); border-radius: 4px; padding: 8px; background-color: var(--arl-bg-light);">
           <div ref="terminalContainer" style="background-color: #001529; color: #e6f7ff; font-family: 'Fira Code', Consolas, 'Courier New', monospace; padding: 16px; border-radius: 4px; height: calc(100vh - 220px); overflow-y: auto; font-size: 13px; line-height: 1.6; box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);">
             <div v-for="(log, idx) in logDataSource" :key="log._id || idx" style="margin-bottom: 6px; word-break: break-all; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 4px;">
-              <span style="color: #00bcd4; margin-right: 8px;">[{{ log.create_time }}]</span>
+              <a style="margin-right: 8px;">[{{ log.create_time }}]</a>
               <span :style="{ color: log.level === 'error' ? '#ff4d4f' : log.level === 'warning' ? '#faad14' : '#52c41a', fontWeight: 'bold', marginRight: '8px' }">[{{ (log.level || 'info').toUpperCase() }}]</span>
-              <span style="color: #1890ff; margin-right: 8px;" v-if="log.title">[{{ log.title }}]</span>
+              <a style="margin-right: 8px;" v-if="log.title">[{{ log.title }}]</a>
               <span style="color: #e6f7ff;">{{ log.message }}</span>
             </div>
             <div v-if="logDataSource.length === 0 && !logLoading" style="color: rgba(255,255,255,0.45); font-style: italic;">[System] 暂无日志记录...</div>
@@ -229,5 +229,5 @@ onUnmounted(() => {
 <style scoped>
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 12px; align-items: center; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
+.search-item .label { color: var(--arl-text-color); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
 </style>

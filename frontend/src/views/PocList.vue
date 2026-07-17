@@ -1,37 +1,37 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
 
     <div style="display: flex; align-items: center; margin-bottom: 20px; gap: 16px;">
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openCreateModal">新建 PoC</a-button>
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="isImportModalVisible = true">导入 PoC</a-button>
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="downloadTemplate">下载导入模板</a-button>
+      <a-button type="primary" @click="openCreateModal">新建 PoC</a-button>
+      <a-button type="primary" @click="isImportModalVisible = true">导入 PoC</a-button>
+      <a-button type="primary" @click="downloadTemplate">下载导入模板</a-button>
 
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" :loading="syncLoading" @click="handleSync">更新</a-button>
+      <a-button type="primary" :loading="syncLoading" @click="handleSync">更新</a-button>
     </div>
 
-    <div class="search-row" style="margin-bottom: 16px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+    <div class="search-row" style="margin-bottom: 16px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
       <div class="search-item">
         <span class="label">漏洞名称：</span>
         <a-input v-model:value="searchForm.vul_name" placeholder="请输入漏洞名称进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
         <span class="label">应用：</span>
         <a-input v-model:value="searchForm.app_name" placeholder="请输入应用进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
         <span class="label">类别：</span>
         <a-input v-model:value="searchForm.category" placeholder="请输入类别进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
         <span class="label">协议：</span>
         <a-input v-model:value="searchForm.scheme" placeholder="请输入协议进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
     </div>
@@ -63,22 +63,22 @@
           <span>{{ (pagination.current - 1) * pagination.pageSize + index + 1 }}</span>
         </template>
         <template v-if="column.key === 'vul_name'">
-          <a @click="showPocDetail(record)" style="color: #00bcd4; font-weight: 500;">{{ record.vul_name }}</a>
+          <a @click="showPocDetail(record)" style="font-weight: 500;">{{ record.vul_name }}</a>
         </template>
         <template v-if="column.key === 'action'">
-          <a @click="editPocSource(record)" style="color: #00bcd4;">编辑源码</a>
+          <a @click="editPocSource(record)">编辑源码</a>
         </template>
       </template>
       <template #emptyText>
         <div style="padding: 40px 0;">
-          <inbox-outlined style="font-size: 48px; color: #d9d9d9;" />
-          <div style="color: #999; margin-top: 8px;">暂无数据</div>
+          <inbox-outlined style="font-size: 48px; color: var(--arl-border-color);" />
+          <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 8px;">暂无数据</div>
         </div>
       </template>
     </a-table>
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" />
     </div>
 
@@ -111,7 +111,7 @@
             <a-tag v-for="item in value" :key="item" color="blue" style="margin-bottom: 4px;">{{ item }}</a-tag>
           </template>
           <template v-else-if="typeof value === 'object' && value !== null">
-            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px; background: #f5f5f5; padding: 8px; border-radius: 4px;">{{ JSON.stringify(value, null, 2) }}</pre>
+            <pre style="margin: 0; white-space: pre-wrap; font-size: 12px; background: var(--arl-bg-light); padding: 8px; border-radius: 4px;">{{ JSON.stringify(value, null, 2) }}</pre>
           </template>
           <template v-else>
             {{ value || '-' }}
@@ -122,7 +122,7 @@
 
     <!-- 源码编辑弹窗 -->
     <a-modal v-model:open="isEditModalVisible" :title="`编辑源码 - ${currentEditPluginName}`" width="800px" @ok="savePocSource" :confirmLoading="saveLoading" ok-text="保存" cancel-text="取消">
-      <div style="border: 1px solid #d9d9d9; border-radius: 4px; overflow: hidden; text-align: left;">
+      <div style="border: 1px solid var(--arl-border-color); border-radius: 4px; overflow: hidden; text-align: left;">
         <codemirror
           v-model="currentEditSourceCode"
           placeholder="正在加载源码..."
@@ -140,7 +140,7 @@
       <div style="margin-bottom: 16px; display: flex; gap: 16px; align-items: center;">
         <a-input v-model:value="createForm.plugin_name" placeholder="插件文件名 (如: poc_test_vuln)" style="flex: 1;">
           <template #addonAfter>
-            <span style="cursor: pointer; color: #00bcd4;" @click="generateFilename">生成名称</span>
+            <a style="cursor: pointer; " @click="generateFilename">生成名称</a>
           </template>
         </a-input>
         <a-select v-model:value="createForm.templateType" style="width: 180px;" @change="handleTemplateChange">
@@ -148,7 +148,7 @@
           <a-select-option value="python_brute">Python 弱口令</a-select-option>
         </a-select>
       </div>
-      <div style="border: 1px solid #d9d9d9; border-radius: 4px; overflow: hidden; text-align: left;">
+      <div style="border: 1px solid var(--arl-border-color); border-radius: 4px; overflow: hidden; text-align: left;">
         <codemirror
           v-model="createForm.content"
           placeholder="在这里编写您的 PoC 代码..."
@@ -559,5 +559,5 @@ onMounted(() => { fetchData(); });
 <style scoped>
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 12px; align-items: center; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
+.search-item .label { color: var(--arl-text-color); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
 </style>

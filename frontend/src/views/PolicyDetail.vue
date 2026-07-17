@@ -1,7 +1,7 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
-    <div style="display: flex; align-items: center; margin-bottom: 24px; border-bottom: 1px solid #f0f0f0; padding-bottom: 16px;">
-      <a-button type="link" @click="goBack" style="padding: 0; margin-right: 16px; color: #00bcd4;">&lt; 返回列表</a-button>
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
+    <div style="display: flex; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--arl-border-color); padding-bottom: 16px;">
+      <a-button type="link" @click="goBack" style="padding: 0; margin-right: 16px; ">&lt; 返回列表</a-button>
       <h2 style="margin: 0; font-size: 18px; font-weight: 500;">{{ isEdit ? '编辑策略' : '新建配置' }}</h2>
     </div>
 
@@ -39,10 +39,10 @@
           </a-form-item>
 
           <a-form-item :wrapper-col="{ offset: 4, span: 16 }">
-            <div style="display: flex; justify-content: space-between; margin-top: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--arl-border-color);">
               <a-checkbox :checked="isAllDomainSelected" @change="toggleAllDomain">全选</a-checkbox>
               <a-input v-model:value="domainSearch" placeholder="请输入关键字进行查询" style="width: 250px;" allowClear>
-                <template #suffix><search-outlined style="color: rgba(0,0,0,0.25);" /></template>
+                <template #suffix><search-outlined style="color: var(--arl-text-color); opacity: 0.25;" /></template>
               </a-input>
             </div>
             <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -85,10 +85,10 @@
 
         <a-collapse-panel key="3" header="站点和风险配置">
           <a-form-item :wrapper-col="{ offset: 4, span: 16 }">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--arl-border-color);">
               <a-checkbox :checked="isAllSiteSelected" @change="toggleAllSite">全选</a-checkbox>
               <a-input v-model:value="siteSearch" placeholder="请输入关键字进行查询" style="width: 250px;" allowClear>
-                <template #suffix><search-outlined style="color: rgba(0,0,0,0.25);" /></template>
+                <template #suffix><search-outlined style="color: var(--arl-text-color); opacity: 0.25;" /></template>
               </a-input>
             </div>
             <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -106,7 +106,7 @@
           <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding: 0 16px;">
             <a-checkbox :checked="isAllPocSelected" @change="toggleAllPoc">全选</a-checkbox>
             <a-input v-model:value="pocSearch" placeholder="请输入关键字进行查询" style="width: 250px;">
-              <template #suffix><search-outlined style="color: rgba(0,0,0,0.25);" /></template>
+              <template #suffix><search-outlined style="color: var(--arl-text-color); opacity: 0.25;" /></template>
             </a-input>
           </div>
           <a-row :gutter="[16, 16]" style="padding: 0 16px;">
@@ -120,7 +120,7 @@
           <div style="display: flex; justify-content: space-between; margin-bottom: 16px; padding: 0 16px;">
             <a-checkbox :checked="isAllBruteSelected" @change="toggleAllBrute">全选</a-checkbox>
             <a-input v-model:value="bruteSearch" placeholder="请输入关键字进行查询" style="width: 250px;">
-              <template #suffix><search-outlined style="color: rgba(0,0,0,0.25);" /></template>
+              <template #suffix><search-outlined style="color: var(--arl-text-color); opacity: 0.25;" /></template>
             </a-input>
           </div>
           <a-row :gutter="[16, 16]" style="padding: 0 16px;">
@@ -141,7 +141,7 @@
       </a-collapse>
 
       <div style="text-align: center; margin-bottom: 40px;">
-        <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4; margin-right: 16px; width: 100px;" @click="submitPolicy" :loading="submitLoading">确 定</a-button>
+        <a-button type="primary" style=" margin-right: 16px; width: 100px;" @click="submitPolicy" :loading="submitLoading">确 定</a-button>
         <a-button style="width: 100px;" @click="goBack">取 消</a-button>
       </div>
     </a-form>
@@ -360,6 +360,6 @@ const submitPolicy = async () => {
 </script>
 
 <style scoped>
-:deep(.ant-collapse > .ant-collapse-item) { border-bottom: 1px solid #f0f0f0; }
+:deep(.ant-collapse > .ant-collapse-item) { border-bottom: 1px solid var(--arl-border-color); }
 :deep(.ant-collapse-header) { font-weight: 500; font-size: 15px; }
 </style>

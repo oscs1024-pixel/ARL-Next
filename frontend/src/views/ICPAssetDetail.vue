@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
     <a-page-header
       :title="`任务名: ${taskName || taskId}`"
       @back="() => router.back()"
@@ -28,7 +28,7 @@
               <a-input-number v-model:value="searchForm[col.dataIndex]" style="width: 130px" :placeholder="'输入' + col.title" @pressEnter="onSearch" />
             </a-input-group>
             <a-input v-else v-model:value="searchForm[col.dataIndex]" :placeholder="'请输入' + col.title" style="width: 180px;" allowClear @pressEnter="onSearch">
-              <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+              <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
             </a-input>
           </a-form-item>
         </template>
@@ -71,18 +71,18 @@
     </a-table>
 
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 16px;">
-        <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+        <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
         <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" @showSizeChange="handleTableChange" />
       </div>
     </div>
 
     <div v-show="activeTab === 'log'">
-      <div style="border: 1px solid #e8e8e8; border-radius: 4px; padding: 8px; background-color: #fafafa;">
+      <div style="border: 1px solid var(--arl-border-color); border-radius: 4px; padding: 8px; background-color: var(--arl-bg-light);">
         <div ref="terminalContainer" style="background-color: #001529; color: #e6f7ff; font-family: 'Fira Code', Consolas, 'Courier New', monospace; padding: 16px; border-radius: 4px; height: calc(100vh - 220px); overflow-y: auto; font-size: 13px; line-height: 1.6; box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);">
           <div v-for="(log, idx) in syslogList" :key="idx" style="margin-bottom: 6px; word-break: break-all; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 4px;">
-            <span style="color: #00bcd4; margin-right: 8px;">[{{ log.create_time }}]</span>
+            <a style="margin-right: 8px;">[{{ log.create_time }}]</a>
             <span :style="{ color: log.level === 'error' ? '#ff4d4f' : log.level === 'warning' ? '#faad14' : '#52c41a', fontWeight: 'bold', marginRight: '8px' }">[{{ (log.level || 'info').toUpperCase() }}]</span>
-            <span style="color: #1890ff; margin-right: 8px;">[{{ log.title }}]</span>
+            <a style="margin-right: 8px;">[{{ log.title }}]</a>
             <span style="color: #e6f7ff;">{{ log.message }}</span>
           </div>
           <div v-if="syslogList.length === 0" style="color: rgba(255,255,255,0.45); font-style: italic;">[System] 暂无日志记录... (等待日志生成或当前为历史遗留任务)</div>

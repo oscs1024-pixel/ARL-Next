@@ -21,6 +21,7 @@ services:
     volumes:
       # 挂载您的 SSL 证书到容器中
       - ./ssl-certs:/certs:ro
+      - ./frontend/.htpasswd:/etc/nginx/.htpasswd:ro
     depends_on:
       - arl-web
     networks:

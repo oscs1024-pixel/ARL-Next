@@ -1,23 +1,23 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
 
     <div class="search-row" style="margin-bottom: 16px;">
       <div class="search-item">
         <span class="label">名称：</span>
         <a-input v-model:value="searchForm.name" placeholder="请输入名称进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
         <span class="label">域名：</span>
         <a-input v-model:value="searchForm.domain" placeholder="请输入域名进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
         <span class="label">资产范围ID：</span>
         <a-input v-model:value="searchForm.scope_id" placeholder="请输入资产范围ID进行搜索" style="width: 200px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
     </div>
@@ -45,12 +45,12 @@
         </template>
 
         <template v-if="column.key === 'scope_id'">
-          <span
-              style="color: #00bcd4; cursor: pointer;"
+          <a
+              style="cursor: pointer;\"
               @click="goToAssetScope(record.scope_id)"
           >
             {{ record.scope_id }}
-          </span>
+          </a>
         </template>
 
         <template v-else-if="column.key === 'interval'">
@@ -58,7 +58,7 @@
         </template>
 
         <template v-else-if="column.key === 'run_number'">
-          <span style="color: #00bcd4; cursor: pointer;">{{ record.run_number }}</span>
+          <a style="cursor: pointer;">{{ record.run_number }}</a>
         </template>
 
         <template v-else-if="column.key === 'action'">
@@ -74,7 +74,7 @@
     </a-table>
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" @showSizeChange="handleTableChange" />
     </div>
 
@@ -264,7 +264,7 @@ onMounted(fetchData);
   align-items: center;
 }
 .search-item .label {
-  color: rgba(0,0,0,0.85);
+  color: var(--arl-text-color);
   margin-right: 4px; /* 缩小标签和输入框的间距 */
   white-space: nowrap; /* 🚨 核心修复：移除 min-width，让文字自然适应宽度且不换行 */
 }

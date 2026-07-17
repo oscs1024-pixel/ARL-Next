@@ -121,45 +121,64 @@ class PollingHandler(BaseHTTPRequestHandler):
 
     def run_command(self, cmd):
         global dynamic_progress
+        import pty
         ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
         
         try:
-            # We want start-prod.sh not to restart this very python service if possible.
-            # We pass an env var to inform start-prod.sh to skip restarting us.
             env = os.environ.copy()
             env["ARL_UPDATER_SKIP_RESTART"] = "1"
-            
             cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+            
+            master, slave = pty.openpty()
             process = subprocess.Popen(
                 cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
+                stdin=slave,
+                stdout=slave,
+                stderr=slave,
+                close_fds=True,
                 cwd=cwd,
                 env=env
             )
+            os.close(slave)
             
-            for line in iter(process.stdout.readline, ''):
-                line = ansi_escape.sub('', line.strip())
-                if not line:
-                    continue
-                
-                if 'Downloading' in line or 'Extracting' in line:
-                    parts = line.split(': ', 1)
-                    if len(parts) >= 2:
-                        dynamic_progress[parts[0]] = parts[1]
-                    else:
-                        dynamic_progress["_general"] = line
-                    continue
+            buffer = ""
+            while True:
+                try:
+                    data = os.read(master, 1024).decode('utf-8', errors='ignore')
+                    if not data:
+                        break
                     
-                if 'complete' in line.lower():
-                    parts = line.split(': ', 1)
-                    if len(parts) >= 2 and parts[0] in dynamic_progress:
-                        del dynamic_progress[parts[0]]
+                    data = ansi_escape.sub('', data)
+                    buffer += data
+                    buffer = buffer.replace('\r\n', '\n').replace('\r', '\n')
+                    
+                    while '\n' in buffer:
+                        line, buffer = buffer.split('\n', 1)
+                        line = line.strip()
+                        if not line:
+                            continue
+                            
+                        if any(x in line for x in ['Downloading', 'Extracting', 'Waiting']):
+                            parts = line.split(': ', 1)
+                            if len(parts) >= 2:
+                                dynamic_progress[parts[0]] = parts[1]
+                            else:
+                                dynamic_progress["_general"] = line
+                            continue
+                            
+                        if 'complete' in line.lower():
+                            parts = line.split(': ', 1)
+                            if len(parts) >= 2 and parts[0] in dynamic_progress:
+                                del dynamic_progress[parts[0]]
+                            continue
                         
-                self.log_append(line)
-                
+                        if any(x in line for x in ['Pulling fs layer', 'Already exists', 'Pull complete', 'Download complete', 'Digest:', 'Status: Downloaded newer image', 'Status: Image is up to date']):
+                            continue
+                            
+                        self.log_append(line)
+                except OSError:
+                    break
+                    
             process.wait()
             
             if process.returncode != 0:

@@ -1,14 +1,14 @@
 <template>
-  <div style="padding: 24px; background: #fff; min-height: 100%;">
+  <div style="padding: 24px; background: var(--arl-bg-white); min-height: 100%;">
     <h2 style="margin-bottom: 24px;">系统设置</h2>
     
     <a-tabs v-model:activeKey="activeKey">
       <!-- 统一字典管理 Tab -->
       <a-tab-pane key="dictionary" tab="字典管理">
         <a-spin :spinning="loading || bruteLoading">
-            <div style="display: flex; gap: 0; height: calc(100vh - 180px); min-height: 580px; border: 1px solid #f0f0f0; border-radius: 4px; overflow: hidden;"> <!-- 左侧语义化菜单与独立滚动 -->
-            <div style="width: 256px; flex-shrink: 0; border-right: 1px solid #f0f0f0; background: #fff; display: flex; flex-direction: column;">
-              <div style="padding: 16px; border-bottom: 1px solid #f5f5f5;">
+            <div style="display: flex; gap: 0; height: calc(100vh - 180px); min-height: 580px; border: 1px solid var(--arl-border-color); border-radius: 4px; overflow: hidden;"> <!-- 左侧语义化菜单与独立滚动 -->
+            <div style="width: 256px; flex-shrink: 0; border-right: 1px solid var(--arl-border-color); background: var(--arl-bg-white); display: flex; flex-direction: column;">
+              <div style="padding: 16px; border-bottom: 1px solid var(--arl-border-color);">
                 <a-input-search v-model:value="menuSearch" placeholder="搜索字典名称..." style="width: 100%; border-radius: 4px;" />
               </div>
               <div style="flex: 1; overflow-y: auto;">
@@ -21,12 +21,12 @@
                 >
                   <a-sub-menu v-for="group in filteredTreeData" :key="group.key">
                     <template #title>
-                      <span style="font-weight: 600; color: #1f2329;">{{ group.title }}</span>
+                      <span style="font-weight: 600; color: var(--arl-text-color);">{{ group.title }}</span>
                     </template>
                     <a-menu-item v-for="item in group.children" :key="item.key" style="height: auto; line-height: normal; padding-top: 8px; padding-bottom: 8px;">
                       <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <span style="color: #333; font-size: 13px; font-weight: 500;">{{ item.mainTitle }}</span>
-                        <span style="color: #8f959e; font-size: 11px;">{{ item.subTitle }}</span>
+                        <span style="color: var(--arl-text-color); font-size: 13px; font-weight: 500;">{{ item.mainTitle }}</span>
+                        <span style="color: var(--arl-text-color); opacity: 0.65; font-size: 11px;">{{ item.subTitle }}</span>
                       </div>
                     </a-menu-item>
                   </a-sub-menu>
@@ -35,37 +35,37 @@
             </div>
 
             <!-- 右侧统一操作面板 -->
-            <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column; min-width: 0; background: #fff;">
+            <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column; min-width: 0; background: var(--arl-bg-white);">
 
               <!-- 未选中时占位（健康看板） -->
-              <div v-if="!unifiedSelectedType" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; gap: 16px; overflow-y: auto;">
+              <div v-if="!unifiedSelectedType" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--arl-text-color); gap: 16px; overflow-y: auto;">
                 <div style="font-size: 48px; margin-bottom: 8px;">📊</div>
-                <h3 style="margin: 0; color: #333; font-weight: bold;">字典库健康概览</h3>
+                <h3 style="margin: 0; color: var(--arl-text-color); font-weight: bold;">字典库健康概览</h3>
                 <div style="display: flex; gap: 24px; margin-top: 16px;">
-                  <div style="text-align: center; background: #f0f5ff; padding: 20px 32px; border-radius: 8px; border: 1px solid #d6e4ff; min-width: 160px;">
-                    <div style="font-size: 28px; font-weight: bold; color: #1890ff;">{{ dictList.length }}</div>
-                    <div style="font-size: 13px; color: #555; margin-top: 6px;">核心资产字典数</div>
+                  <div style="text-align: center; background: var(--arl-bg-light); padding: 20px 32px; border-radius: 8px; border: 1px solid var(--arl-border-color); min-width: 160px;">
+                    <div style="font-size: 28px; font-weight: bold; color: var(--arl-theme-color);">{{ dictList.length }}</div>
+                    <div style="font-size: 13px; color: var(--arl-text-color); margin-top: 6px;">核心资产字典数</div>
                   </div>
-                  <div style="text-align: center; background: #fff7e6; padding: 20px 32px; border-radius: 8px; border: 1px solid #ffd8bf; min-width: 160px;">
+                  <div style="text-align: center; background: var(--arl-bg-white)7e6; padding: 20px 32px; border-radius: 8px; border: 1px solid var(--arl-border-color); min-width: 160px;">
                     <div style="font-size: 28px; font-weight: bold; color: #fa8c16;">{{ bruteDictList.length }}</div>
-                    <div style="font-size: 13px; color: #555; margin-top: 6px;">弱口令字典数</div>
+                    <div style="font-size: 13px; color: var(--arl-text-color); margin-top: 6px;">弱口令字典数</div>
                   </div>
                 </div>
-                <div style="font-size: 13px; color: #999; margin-top: 24px;">👈 请在左侧选择要管理的字典文件</div>
+                <div style="font-size: 13px; color: var(--arl-text-color); opacity: 0.45; margin-top: 24px;">👈 请在左侧选择要管理的字典文件</div>
               </div>
 
               <!-- 统一操作面板（沉浸式预览与悬浮操作） -->
               <div v-else style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
                 <!-- 头部标题与操作栏 -->
-                <div style="padding: 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: flex-start; background: #fff; flex-shrink: 0;">
+                <div style="padding: 24px; border-bottom: 1px solid var(--arl-border-color); display: flex; justify-content: space-between; align-items: flex-start; background: var(--arl-bg-white); flex-shrink: 0;">
                    <div>
                      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                       <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #1f2329;">{{ unifiedSelectedName }}</h3>
+                       <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--arl-text-color);">{{ unifiedSelectedName }}</h3>
                        <a-tag :color="unifiedSelectedType === 'asset' ? 'blue' : 'orange'" style="margin: 0;">
                          {{ unifiedSelectedType === 'asset' ? '资产发现字典' : '弱口令字典' }}
                        </a-tag>
                      </div>
-                     <div style="color: #8f959e; font-size: 13px;">{{ unifiedSelectedDesc }} | 共 <span style="font-weight: 600; color: #333;">{{ totalLines }}</span> 行记录</div>
+                     <div style="color: var(--arl-text-color); opacity: 0.65; font-size: 13px;">{{ unifiedSelectedDesc }} | 共 <span style="font-weight: 600; color: var(--arl-text-color);">{{ totalLines }}</span> 行记录</div>
                    </div>
                    <div style="display: flex; gap: 12px;">
                      <a-button @click="searchDrawerVisible = true">
@@ -78,13 +78,13 @@
                 </div>
                 
                 <!-- 沉浸式内容预览 -->
-                <div style="flex: 1; overflow-y: auto; padding: 24px; background: #fcfcfc;">
-                   <div style="background: #fff; border-radius: 8px; border: 1px solid #f0f0f0; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
-                     <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; color: #333; line-height: 1.6; white-space: pre-wrap; word-break: break-all;">
-                       <div v-if="!previewContent" style="color: #bbb; text-align: center; padding: 60px 0;">该字典暂无内容</div>
+                <div style="flex: 1; overflow-y: auto; padding: 24px; background: transparent;">
+                   <div style="background: var(--arl-bg-white); border-radius: 8px; border: 1px solid var(--arl-border-color); padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                     <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 13px; color: var(--arl-text-color); line-height: 1.6; white-space: pre-wrap; word-break: break-all;">
+                       <div v-if="!previewContent" style="color: var(--arl-text-color); opacity: 0.25; text-align: center; padding: 60px 0;">该字典暂无内容</div>
                        <template v-else>{{ previewContent }}</template>
                      </div>
-                     <div v-if="totalLines > previewLimit" style="text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px dashed #eee; color: #999; font-size: 12px;">
+                     <div v-if="totalLines > previewLimit" style="text-align: center; margin-top: 24px; padding-top: 16px; border-top: 1px dashed var(--arl-border-color); color: var(--arl-text-color); opacity: 0.45; font-size: 12px;">
                        仅预览前 {{ previewLimit }} 行内容
                      </div>
                    </div>
@@ -97,7 +97,7 @@
 
         <!-- 追加数据抽屉 -->
         <a-drawer v-model:open="appendDrawerVisible" title="追加字典数据" placement="right" width="450">
-          <div style="margin-bottom: 12px; color: #555; font-size: 13px;">请粘贴要追加的条目（每行一个）：</div>
+          <div style="margin-bottom: 12px; color: var(--arl-text-color); font-size: 13px;">请粘贴要追加的条目（每行一个）：</div>
           <a-textarea v-model:value="newEntries" :rows="25" placeholder="例如：
 admin
 root" style="font-family: monospace; font-size: 12px; margin-bottom: 24px;" />
@@ -124,8 +124,8 @@ root" style="font-family: monospace; font-size: 12px; margin-bottom: 24px;" />
               <div v-if="searchResult.length > 0" style="margin-bottom: 8px; color: #52c41a; font-size: 13px;">✅ 找到 {{ searchResult.length }} 条匹配项</div>
               <div v-else style="margin-bottom: 8px; color: #ff4d4f; font-size: 13px;">❌ 未找到匹配条目</div>
               <div v-if="searchResult.length > 0" style="max-height: 300px; overflow-y: auto;">
-                <div v-for="(item, idx) in searchResult" :key="idx" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid #f0f0f0; background: #fafafa; margin-bottom: 4px; border-radius: 4px;">
-                  <span style="font-family: monospace; font-size: 12px; word-break: break-all; color: #333;">{{ item }}</span>
+                <div v-for="(item, idx) in searchResult" :key="idx" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid var(--arl-border-color); background: var(--arl-bg-light); margin-bottom: 4px; border-radius: 4px;">
+                  <span style="font-family: monospace; font-size: 12px; word-break: break-all; color: var(--arl-text-color);">{{ item }}</span>
                   <a-button type="text" danger size="small" @click="handleDeleteSingle(item)" :loading="deleteLoading">删除</a-button>
                 </div>
               </div>
@@ -137,7 +137,7 @@ root" style="font-family: monospace; font-size: 12px; margin-bottom: 24px;" />
           
           <div>
             <div style="margin-bottom: 8px; font-weight: 500; font-size: 14px; color: #ff4d4f;">🗑️ 批量删除</div>
-            <div style="margin-bottom: 8px; color: #888; font-size: 12px;">输入要删除的准确条目，每行一个：</div>
+            <div style="margin-bottom: 8px; color: var(--arl-text-color); opacity: 0.45; font-size: 12px;">输入要删除的准确条目，每行一个：</div>
             <a-textarea v-model:value="batchDeleteEntries" :rows="10" placeholder="例如：
 admin123
 123456" style="font-family: monospace; font-size: 12px; margin-bottom: 16px;" />
@@ -160,7 +160,7 @@ admin123
               <a-button>一键导入CDN</a-button>
             </a-upload>
           </div>
-          <a-button type="primary" style="background-color: #52c41a; border-color: #52c41a;" @click="saveCdnData" :loading="cdnSaveLoading">保存全量更改到服务器</a-button>
+          <a-button type="primary" @click="saveCdnData" :loading="cdnSaveLoading">保存全量更改到服务器</a-button>
         </div>
         
         <a-table 
@@ -217,10 +217,10 @@ admin123
       <a-tab-pane key="security" tab="安全策略管理" force-render>
         <div style="max-width: 1000px; padding-bottom: 40px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <span style="color: #888;">
+            <span style="color: var(--arl-text-color); opacity: 0.45;">
               此处的配置项用于全局的安全限制，防止系统对指定范围的 IP 或域名发起扫描。保存后立即生效，无需重启。
             </span>
-            <a-button type="primary" style="background-color: #52c41a; border-color: #52c41a;" @click="saveSecurityPolicy" :loading="securitySaveLoading">
+            <a-button type="primary" @click="saveSecurityPolicy" :loading="securitySaveLoading">
               保存安全策略
             </a-button>
           </div>
@@ -241,10 +241,10 @@ admin123
       <a-tab-pane key="performance" tab="性能与并发配置" force-render>
         <div style="max-width: 1000px; padding-bottom: 40px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <span style="color: #888;">
+            <span style="color: var(--arl-text-color); opacity: 0.45;">
               此处的配置用于调整扫描节点 (Worker) 的任务并发处理能力。修改保存后，需要手动重启底层的 Celery Worker 进程或容器以使新配置生效。
             </span>
-            <a-button type="primary" style="background-color: #52c41a; border-color: #52c41a;" @click="savePerformanceConfig" :loading="performanceSaveLoading">
+            <a-button type="primary" @click="savePerformanceConfig" :loading="performanceSaveLoading">
               保存性能配置
             </a-button>
           </div>
@@ -252,7 +252,7 @@ admin123
             <a-form layout="vertical">
               <a-form-item label="Celery 并发数 (Concurrency)">
                 <a-input-number v-model:value="performanceForm.celeryConcurrency" :min="1" :max="128" style="width: 200px" />
-                <div style="margin-top: 8px; color: #aaa; font-size: 13px;">
+                <div style="margin-top: 8px; color: var(--arl-text-color); opacity: 0.45; font-size: 13px;">
                   设置过大可能会导致内存溢出或目标服务器宕机，建议根据机器配置调整（每增加1个并发约增加 100MB 内存消耗，默认为 2）。
                 </div>
               </a-form-item>
@@ -265,10 +265,10 @@ admin123
       <a-tab-pane key="api_config" tab="三方 API 配置" force-render>
         <div style="max-width: 1000px; padding-bottom: 40px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <span style="color: #888;">
+            <span style="color: var(--arl-text-color); opacity: 0.45;">
               此处的配置项用于三方情报或搜索接口的 API 凭证管理，配置保存后将动态应用至对应的域名/资产收集任务。
             </span>
-            <a-button type="primary" style="background-color: #52c41a; border-color: #52c41a;" @click="saveGeneralConfig" :loading="generalSaveLoading">
+            <a-button type="primary" @click="saveGeneralConfig" :loading="generalSaveLoading">
               保存 API 配置
             </a-button>
           </div>
@@ -337,12 +337,12 @@ admin123
 
               <!-- 4. 插件配置 -->
               <a-card title="🧩 域名收集扩展插件配置 (QUERY_PLUGIN)" size="small" style="border-radius: 6px;">
-                <div style="background: #fafafa; border-radius: 4px; padding: 12px;">
+                <div style="background: var(--arl-bg-light); border-radius: 4px; padding: 12px;">
                   <a-row :gutter="[12, 12]">
                     <a-col :span="8" v-for="(conf, pluginName) in generalForm.query_plugin_config" :key="pluginName">
-                      <div style="border: 1px solid #e8e8e8; background: #fff; padding: 12px; border-radius: 4px; min-height: 110px; position: relative;">
+                      <div style="border: 1px solid var(--arl-border-color); background: var(--arl-bg-white); padding: 12px; border-radius: 4px; min-height: 110px; position: relative;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                          <span style="font-weight: 600; text-transform: uppercase; color: #1890ff;">{{ pluginName }}</span>
+                          <a style="font-weight: 600; text-transform: uppercase; ">{{ pluginName }}</a>
                           <a-switch v-model:checked="conf.enable" size="small" />
                         </div>
                         
@@ -385,10 +385,10 @@ admin123
       <a-tab-pane key="message_push" tab="消息推送与回调" force-render>
         <div style="max-width: 1100px; padding-bottom: 40px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <span style="color: #888;">
+            <span style="color: var(--arl-text-color); opacity: 0.45;">
               此处的配置项用于监控任务结束后的结果推送以及自动化 Webhook 接口回调。
             </span>
-            <a-button type="primary" style="background-color: #52c41a; border-color: #52c41a;" @click="saveGeneralConfig" :loading="generalSaveLoading">
+            <a-button type="primary" @click="saveGeneralConfig" :loading="generalSaveLoading">
               保存推送配置
             </a-button>
           </div>
@@ -397,7 +397,7 @@ admin123
             <a-form layout="vertical">
               
               <!-- 1. 订阅消息类型 -->
-              <a-card title="🔔 订阅消息类型" size="small" style="margin-bottom: 16px; border-radius: 6px; border-left: 4px solid #1890ff;">
+              <a-card title="🔔 订阅消息类型" size="small" style="margin-bottom: 16px; border-radius: 6px; border-left: 4px solid var(--arl-theme-color);">
                 <a-checkbox-group v-model:value="generalForm.push_options" style="width: 100%;">
                   <a-row>
                     <a-col :span="6" style="margin-bottom: 8px;"><a-checkbox value="task_complete">资产侦察任务完成</a-checkbox></a-col>
@@ -545,10 +545,10 @@ admin123
       <a-tab-pane key="system_general" tab="高级扫描与环境配置" force-render>
         <div style="max-width: 1000px; padding-bottom: 40px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <span style="color: #888;">
+            <span style="color: var(--arl-text-color); opacity: 0.45;">
               此处的配置项用于代理、全局端口字典及扫描线程的调优。底部只读展示系统底层关键连接。
             </span>
-            <a-button type="primary" style="background-color: #52c41a; border-color: #52c41a;" @click="saveGeneralConfig" :loading="generalSaveLoading">
+            <a-button type="primary" @click="saveGeneralConfig" :loading="generalSaveLoading">
               保存高级配置
             </a-button>
           </div>
@@ -607,7 +607,7 @@ admin123
               </a-row>
 
               <a-form-item label="底层系统基础设施服务连接信息 (只读)">
-                <div style="background: #fafafa; border: 1px solid #f0f0f0; border-radius: 4px; padding: 16px;">
+                <div style="background: var(--arl-bg-light); border: 1px solid var(--arl-border-color); border-radius: 4px; padding: 16px;">
                   <a-descriptions bordered size="small" :column="1">
                     <a-descriptions-item label="Celery 消息队列 (Broker URL)">
                       <code style="word-break: break-all;">{{ generalForm.celery_broker_url }}</code>
@@ -1437,6 +1437,16 @@ const checkVersion = async () => {
       const ghData = await ghRes.json();
       if (ghData && ghData.length > 0) {
         remoteVersion.value = ghData[0].name;
+        
+        // 获取该 tag 对应的 commit 以提取更新日志 (Commit Message)
+        const commitUrl = ghData[0].commit.url;
+        if (commitUrl) {
+          const commitRes = await fetch(commitUrl);
+          if (commitRes.ok) {
+            const commitData = await commitRes.json();
+            releaseNotes.value = commitData.commit.message;
+          }
+        }
       }
     }
       

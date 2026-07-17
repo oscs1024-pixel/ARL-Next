@@ -1,27 +1,27 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
 
     <div style="margin-bottom: 20px;">
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openAddModal">添加计划任务</a-button>
+      <a-button type="primary" @click="openAddModal">添加计划任务</a-button>
     </div>
 
-    <div class="search-row" style="margin-bottom: 16px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+    <div class="search-row" style="margin-bottom: 16px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
       <div class="search-item">
         <span class="label">任务名称：</span>
         <a-input v-model:value="searchForm.name" placeholder="请输入任务名称搜索" style="width: 160px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
         <span class="label">目标：</span>
         <a-input v-model:value="searchForm.target" placeholder="请输入目标搜索" style="width: 160px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
         <span class="label">策略名称：</span>
         <a-input v-model:value="searchForm.policy_name" placeholder="请输入策略搜索" style="width: 160px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
       <div class="search-item">
@@ -62,8 +62,8 @@
     >
       <template #emptyText>
         <div style="padding: 40px 0;">
-          <inbox-outlined style="font-size: 48px; color: #d9d9d9;" />
-          <div style="color: #999; margin-top: 8px;">暂无数据</div>
+          <inbox-outlined style="font-size: 48px; color: var(--arl-border-color);" />
+          <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 8px;">暂无数据</div>
         </div>
       </template>
 
@@ -111,7 +111,7 @@
     </a-table>
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" />
     </div>
 
@@ -330,5 +330,5 @@ onMounted(() => {
 <style scoped>
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 12px; align-items: center; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
+.search-item .label { color: var(--arl-text-color); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
 </style>

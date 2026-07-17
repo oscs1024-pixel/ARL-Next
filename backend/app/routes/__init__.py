@@ -19,7 +19,7 @@ base_query_fields = {
 EQUAL_FIELDS = [
     "task_id", "task_tag", "ip_type", "scope_id", "type", "query_type",
     "status", "schedule_status", "schedule_type", "source",
-    "plg_type", "plugin_type", "vuln_severity", "port_scan_type", "finger"
+    "plg_type", "plugin_type", "vuln_severity", "port_scan_type"
 ]
 
 
@@ -153,6 +153,12 @@ class ARLResource(Resource):
                     "$ne": args[key]
                 }
                 query_args[real_key] = raw_value
+
+            # __eq 代表 completely equal (完全等于/精确匹配)
+            elif key.endswith("__eq"):
+                real_key = key.split('__eq')[0]
+                actual_key = "finger.name" if real_key == "finger" else real_key
+                query_args[actual_key] = args[key]
 
             # __not 代表正则不匹配
             elif key.endswith("__not"):

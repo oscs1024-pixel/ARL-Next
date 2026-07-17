@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #f0f2f5; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
     
     <!-- 全局 Token 状态提示 -->
     <a-alert
@@ -29,7 +29,7 @@
             <!-- 子 Tab 1: 周期策略管理 -->
             <a-tab-pane key="scheduler" tab="周期策略管理">
         <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
-          <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openSchedulerAdd">添加策略</a-button>
+          <a-button type="primary" @click="openSchedulerAdd">添加策略</a-button>
           <a-button type="dashed" @click="fetchSchedulerData">
             <template #icon><sync-outlined /></template>
             刷新列表
@@ -37,17 +37,17 @@
         </div>
 
         <!-- 策略搜索栏 -->
-        <div class="search-row" style="margin-bottom: 16px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+        <div class="search-row" style="margin-bottom: 16px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
           <div class="search-item">
             <span class="label">策略名称：</span>
             <a-input v-model:value="schedulerSearchForm.name" placeholder="请输入策略名称" style="width: 180px;" allowClear @pressEnter="onSchedulerSearch">
-              <template #suffix><search-outlined @click="onSchedulerSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+              <template #suffix><search-outlined @click="onSchedulerSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
             </a-input>
           </div>
           <div class="search-item">
             <span class="label">关键字：</span>
             <a-input v-model:value="schedulerSearchForm.keyword" placeholder="请输入关键字" style="width: 180px;" allowClear @pressEnter="onSchedulerSearch">
-              <template #suffix><search-outlined @click="onSchedulerSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+              <template #suffix><search-outlined @click="onSchedulerSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
             </a-input>
           </div>
           <div class="search-item">
@@ -82,14 +82,14 @@
         >
           <template #emptyText>
             <div style="padding: 40px 0;">
-              <inbox-outlined style="font-size: 48px; color: #d9d9d9;" />
-              <div style="color: #999; margin-top: 8px;">暂无策略数据</div>
+              <inbox-outlined style="font-size: 48px; color: var(--arl-border-color);" />
+              <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 8px;">暂无策略数据</div>
             </div>
           </template>
 
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'name'">
-              <a style="color: #00bcd4; font-weight: 500;" @click="goToSchedulerDetail(record)">{{ record.name }}</a>
+              <a style="color: var(--arl-theme-color); font-weight: 500;" @click="goToSchedulerDetail(record)">{{ record.name }}</a>
             </template>
 
             <template v-else-if="column.key === 'status'">
@@ -124,7 +124,7 @@
 
         <!-- 策略分页 -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
-          <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(schedulerPagination.total / schedulerPagination.pageSize) || 1 }} 页 / {{ schedulerPagination.total }} 条数据</div>
+          <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(schedulerPagination.total / schedulerPagination.pageSize) || 1 }} 页 / {{ schedulerPagination.total }} 条数据</div>
           <a-pagination v-model:current="schedulerPagination.current" v-model:pageSize="schedulerPagination.pageSize" :total="schedulerPagination.total" show-size-changer @change="handleSchedulerTableChange" />
         </div>
       </a-tab-pane>
@@ -132,7 +132,7 @@
       <!-- 子 Tab 2: 单次扫描任务 -->
       <a-tab-pane key="task" tab="单次扫描任务">
         <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
-          <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openTaskAdd">新建单次任务</a-button>
+          <a-button type="primary" @click="openTaskAdd">新建单次任务</a-button>
           <a-button type="dashed" @click="fetchTaskData">
             <template #icon><sync-outlined /></template>
             刷新列表
@@ -140,17 +140,17 @@
         </div>
 
         <!-- 任务搜索栏 -->
-        <div class="search-row" style="margin-bottom: 16px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+        <div class="search-row" style="margin-bottom: 16px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
           <div class="search-item">
             <span class="label">任务名称：</span>
             <a-input v-model:value="taskSearchForm.name" placeholder="请输入任务名称" style="width: 180px;" allowClear @pressEnter="onTaskSearch">
-              <template #suffix><search-outlined @click="onTaskSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+              <template #suffix><search-outlined @click="onTaskSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
             </a-input>
           </div>
           <div class="search-item">
             <span class="label">关键字：</span>
             <a-input v-model:value="taskSearchForm.keyword" placeholder="请输入关键字" style="width: 180px;" allowClear @pressEnter="onTaskSearch">
-              <template #suffix><search-outlined @click="onTaskSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+              <template #suffix><search-outlined @click="onTaskSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
             </a-input>
           </div>
           <div class="search-item">
@@ -187,14 +187,14 @@
         >
           <template #emptyText>
             <div style="padding: 40px 0;">
-              <inbox-outlined style="font-size: 48px; color: #d9d9d9;" />
-              <div style="color: #999; margin-top: 8px;">暂无扫描任务</div>
+              <inbox-outlined style="font-size: 48px; color: var(--arl-border-color);" />
+              <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 8px;">暂无扫描任务</div>
             </div>
           </template>
 
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'name'">
-              <a style="color: #00bcd4; font-weight: 500;" @click="goToTaskDetail(record)">{{ record.name }}</a>
+              <a style="color: var(--arl-theme-color); font-weight: 500;" @click="goToTaskDetail(record)">{{ record.name }}</a>
             </template>
 
             <template v-else-if="column.key === 'status'">
@@ -233,7 +233,7 @@
 
         <!-- 任务分页 -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
-          <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(taskPagination.total / taskPagination.pageSize) || 1 }} 页 / {{ taskPagination.total }} 条数据</div>
+          <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(taskPagination.total / taskPagination.pageSize) || 1 }} 页 / {{ taskPagination.total }} 条数据</div>
           <a-pagination v-model:current="taskPagination.current" v-model:pageSize="taskPagination.pageSize" :total="taskPagination.total" show-size-changer @change="handleTaskTableChange" />
         </div>
       </a-tab-pane>
@@ -248,23 +248,23 @@
     <!-- 顶部概览栏 -->
     <a-row :gutter="16" style="margin-bottom: 24px;">
       <a-col :span="8">
-        <a-card size="small" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); border:none; border-radius:8px;">
+        <a-card size="small" style="background: var(--arl-bg-white); border: 1px solid var(--arl-border-color); border-radius:8px;">
           <a-statistic title="今日捕获 CVE" :value="cveData.length" style="margin-top: 8px">
-            <template #prefix><alert-outlined style="color: #00bcd4;" /></template>
+            <template #prefix><alert-outlined style="color: var(--arl-theme-color);" /></template>
           </a-statistic>
         </a-card>
       </a-col>
       <a-col :span="8">
-        <a-card size="small" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); border:none; border-radius:8px;">
+        <a-card size="small" style="background: var(--arl-bg-white); border: 1px solid var(--arl-border-color); border-radius:8px;">
           <a-statistic title="监控武器库总数" :value="toolsData.length" style="margin-top: 8px">
-            <template #prefix><tool-outlined style="color: #8e24aa;" /></template>
+            <template #prefix><tool-outlined style="color: #b37feb;" /></template>
           </a-statistic>
         </a-card>
       </a-col>
       <a-col :span="8">
-        <a-card size="small" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border:none; border-radius:8px;">
+        <a-card size="small" style="background: var(--arl-bg-white); border: 1px solid var(--arl-border-color); border-radius:8px;">
           <a-statistic title="追踪黑客总数" :value="hackersData.length" style="margin-top: 8px">
-            <template #prefix><team-outlined style="color: #43a047;" /></template>
+            <template #prefix><team-outlined style="color: #52c41a;" /></template>
           </a-statistic>
         </a-card>
       </a-col>
@@ -272,7 +272,7 @@
 
     <a-tabs v-model:activeKey="activeTabTi">
       <a-tab-pane key="cve_history" tab="🚨 CVE 漏洞雷达">
-        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #fafafa; padding: 12px 16px; border-radius: 6px;">
+        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--arl-bg-light); padding: 12px 16px; border-radius: 6px;">
           <div style="display: flex; align-items: center; gap: 16px;">
             <div>
               <span style="margin-right: 8px;">定时开启:</span>
@@ -294,7 +294,7 @@
         </div>
 
         <!-- CVE搜索栏 -->
-        <div class="search-row" style="margin-bottom: 16px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+        <div class="search-row" style="margin-bottom: 16px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
           <div class="search-item">
             <span class="label">CVE 编号：</span>
             <a-input v-model:value="cveSearchForm.cve_name" placeholder="请输入 CVE 编号" style="width: 180px;" allowClear />
@@ -313,7 +313,7 @@
         <a-table :row-selection="{ selectedRowKeys: cveSelectedRowKeys, onChange: onCveSelectChange }" :loading="cveLoading" :dataSource="filteredCveData" :columns="cveColumns" :pagination="{ pageSize: 15 }" size="middle" rowKey="cve_name">
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'cve_name'">
-              <a :href="record.cve_url" target="_blank" style="color: #d32f2f; font-weight: bold; font-size: 15px;">
+              <a :href="record.cve_url" target="_blank" style="color: #ff4d4f; font-weight: bold; font-size: 15px;">
                 {{ record.cve_name }} <link-outlined />
               </a>
             </template>
@@ -335,15 +335,15 @@
       <a-tab-pane key="tools_target" tab="🛠️ 武器库追踪">
         <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
           <div style="display: flex; gap: 16px; align-items: center;">
-            <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openToolAdd">添加工具监控</a-button>
+            <a-button type="primary" @click="openToolAdd">添加工具监控</a-button>
             <a-button type="primary" ghost @click="runToolsOnce">立刻扫描一次</a-button>
             
-            <div style="display: flex; align-items: center; gap: 8px; background: #fafafa; padding: 4px 12px; border-radius: 4px; border: 1px solid #f0f0f0;">
+            <div style="display: flex; align-items: center; gap: 8px; background: var(--arl-bg-light); padding: 4px 12px; border-radius: 4px; border: 1px solid var(--arl-border-color);">
               <span>开启监控:</span>
               <a-switch v-model:checked="toolsConfig.enabled" @change="saveToolsConfig" />
             </div>
             
-            <div v-if="toolsConfig.enabled" style="display: flex; align-items: center; gap: 8px; background: #fafafa; padding: 4px 12px; border-radius: 4px; border: 1px solid #f0f0f0;">
+            <div v-if="toolsConfig.enabled" style="display: flex; align-items: center; gap: 8px; background: var(--arl-bg-light); padding: 4px 12px; border-radius: 4px; border: 1px solid var(--arl-border-color);">
               <span>周期策略:</span>
               <a-select v-model:value="toolsConfig.interval" style="width: 120px" @change="saveToolsConfig">
                 <a-select-option :value="1">每 1 小时</a-select-option>
@@ -361,7 +361,7 @@
         </div>
 
         <!-- 武器库搜索栏 -->
-        <div class="search-row" style="margin-bottom: 16px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+        <div class="search-row" style="margin-bottom: 16px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
           <div class="search-item">
             <span class="label">工具URL：</span>
             <a-input v-model:value="toolsSearchForm.repo_url" placeholder="请输入工具URL" style="width: 250px;" allowClear />
@@ -377,14 +377,14 @@
         <a-table :row-selection="{ selectedRowKeys: toolsSelectedRowKeys, onChange: onToolsSelectChange }" :loading="toolsLoading" :dataSource="filteredToolsData" :columns="toolsColumns" :pagination="true" size="middle" rowKey="repo_url">
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'repo_url'">
-              <a :href="record.repo_url.replace('api.github.com/repos', 'github.com')" target="_blank" style="color: #1976d2; font-weight: 500;">
+              <a :href="record.repo_url.replace('api.github.com/repos', 'github.com')" target="_blank" style="color: #1890ff; font-weight: 500;">
                 {{ record.repo_url.split('/').pop() }} <link-outlined />
               </a>
-              <div style="color: #999; font-size: 12px;">{{ record.repo_url }}</div>
+              <div style="color: var(--arl-text-color); opacity: 0.45; font-size: 12px;">{{ record.repo_url }}</div>
             </template>
             <template v-else-if="column.key === 'last_tag'">
               <a-tag color="cyan" v-if="record.last_tag">{{ record.last_tag }}</a-tag>
-              <span v-else style="color: #ccc;">暂无版本</span>
+              <span v-else style="color: var(--arl-text-color); opacity: 0.25;">暂无版本</span>
             </template>
             <template v-else-if="column.key === 'action'">
               <a :href="record.repo_url.replace('api.github.com/repos', 'github.com')" target="_blank">
@@ -402,15 +402,15 @@
       <a-tab-pane key="hackers_target" tab="👨‍💻 黑客动态监测">
         <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
           <div style="display: flex; gap: 16px; align-items: center;">
-            <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openHackerAdd">添加大佬监控</a-button>
+            <a-button type="primary" @click="openHackerAdd">添加大佬监控</a-button>
             <a-button type="primary" ghost @click="runHackersOnce">立刻扫描一次</a-button>
             
-            <div style="display: flex; align-items: center; gap: 8px; background: #fafafa; padding: 4px 12px; border-radius: 4px; border: 1px solid #f0f0f0;">
+            <div style="display: flex; align-items: center; gap: 8px; background: var(--arl-bg-light); padding: 4px 12px; border-radius: 4px; border: 1px solid var(--arl-border-color);">
               <span>开启监控:</span>
               <a-switch v-model:checked="hackersConfig.enabled" @change="saveHackersConfig" />
             </div>
             
-            <div v-if="hackersConfig.enabled" style="display: flex; align-items: center; gap: 8px; background: #fafafa; padding: 4px 12px; border-radius: 4px; border: 1px solid #f0f0f0;">
+            <div v-if="hackersConfig.enabled" style="display: flex; align-items: center; gap: 8px; background: var(--arl-bg-light); padding: 4px 12px; border-radius: 4px; border: 1px solid var(--arl-border-color);">
               <span>周期策略:</span>
               <a-select v-model:value="hackersConfig.interval" style="width: 120px" @change="saveHackersConfig">
                 <a-select-option :value="1">每 1 小时</a-select-option>
@@ -433,7 +433,7 @@
         </div>
 
         <!-- 黑客搜索栏 -->
-        <div class="search-row" style="margin-bottom: 16px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+        <div class="search-row" style="margin-bottom: 16px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
           <div class="search-item">
             <span class="label">Github ID：</span>
             <a-input v-model:value="hackersSearchForm.github_id" placeholder="请输入 Github ID" style="width: 180px;" allowClear />
@@ -449,8 +449,8 @@
         <a-table :row-selection="{ selectedRowKeys: hackersSelectedRowKeys, onChange: onHackersSelectChange }" :loading="hackersLoading" :dataSource="filteredHackersData" :columns="hackersColumns" :pagination="true" size="middle" rowKey="github_id">
           <template #emptyText>
             <div style="padding: 40px 0;">
-              <inbox-outlined style="font-size: 48px; color: #d9d9d9;" />
-              <div style="color: #999; margin-top: 8px;">暂无监控大佬</div>
+              <inbox-outlined style="font-size: 48px; color: var(--arl-border-color);" />
+              <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 8px;">暂无监控大佬</div>
               <a-button type="link" @click="hackerForm.github_id = 'knownsec'; submitHackerModal()">一键添加 knownsec</a-button>
             </div>
           </template>
@@ -496,12 +496,12 @@
       <a-table :loading="historyLoading" :dataSource="hackersHistoryData" :columns="historyColumns" :pagination="true" size="middle" rowKey="full_name">
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'full_name'">
-            <a :href="`https://github.com/${record.full_name}`" target="_blank" style="font-weight: 500; color: #1976d2;">
+            <a :href="`https://github.com/${record.full_name}`" target="_blank" style="font-weight: 500; color: #1890ff;">
               {{ record.full_name }} <link-outlined />
             </a>
           </template>
           <template v-else-if="column.key === 'insert_time'">
-            <span style="color: #666;"><clock-circle-outlined /> {{ record.insert_time }}</span>
+            <span style="color: var(--arl-text-color);"><clock-circle-outlined /> {{ record.insert_time }}</span>
           </template>
         </template>
       </a-table>
@@ -1305,5 +1305,5 @@ const runHackersOnce = async () => {
 <style scoped>
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 12px; align-items: center; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 8px; min-width: 70px; text-align: right; white-space: nowrap; }
+.search-item .label { color: var(--arl-text-color); margin-right: 8px; min-width: 70px; text-align: right; white-space: nowrap; }
 </style>

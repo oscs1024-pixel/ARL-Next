@@ -1,14 +1,14 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
     <div style="margin-bottom: 16px;">
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="goToDetail">新建策略</a-button>
+      <a-button type="primary" @click="goToDetail">新建策略</a-button>
     </div>
 
-    <div class="search-row" style="margin-bottom: 20px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+    <div class="search-row" style="margin-bottom: 20px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
       <div class="search-item">
         <span class="label">策略名称：</span>
         <a-input v-model:value="searchForm.name" placeholder="请输入策略名称进行搜索" style="width: 220px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
     </div>
@@ -73,7 +73,7 @@
     </a-table>
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" />
     </div>
   </div>
@@ -306,13 +306,13 @@ const handleBatchDelete = async () => {
 <style scoped>
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 12px; align-items: center; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
-.policy-expanded-box { margin: 8px 16px 16px 16px; background: #fff; border: 1px solid #e8e8e8; border-radius: 2px; }
+.search-item .label { color: var(--arl-text-color); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
+.policy-expanded-box { margin: 8px 16px 16px 16px; background: var(--arl-bg-white); border: 1px solid var(--arl-border-color); border-radius: 2px; }
 .policy-section { padding: 16px 24px; }
-.policy-title { font-weight: bold; color: #333; margin-bottom: 16px; }
+.policy-title { font-weight: bold; color: var(--arl-text-color); margin-bottom: 16px; }
 .policy-row { display: flex; margin-bottom: 12px; line-height: 1.5; }
 .policy-row:last-child { margin-bottom: 0; }
-.policy-label { color: #666; width: 130px; flex-shrink: 0; }
-.policy-val { color: #333; word-break: break-word; }
-.policy-divider { height: 1px; background: #e8e8e8; margin: 0; }
+.policy-label { color: var(--arl-text-color); width: 130px; flex-shrink: 0; }
+.policy-val { color: var(--arl-text-color); word-break: break-word; }
+.policy-divider { height: 1px; background: var(--arl-border-color); margin: 0; }
 </style>

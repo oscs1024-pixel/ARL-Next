@@ -45,6 +45,19 @@ class LogoutARL(ARLResource):
 
         return build_data({})
 
+@ns.route('/refresh_token')
+class RefreshTokenARL(ARLResource):
+    @utils.auth
+    def post(self):
+        """
+        刷新当前用户的 Token
+        """
+        token = request.headers.get("Token")
+        new_token = utils.user_refresh_token(token)
+        if new_token:
+            return build_data({"token": new_token})
+        return build_data(None)
+
 
 change_pass_fields = ns.model('ChangePassARL', {
     'old_password': fields.String(required=True, description="旧密码"),

@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
     <a-page-header
       :title="`${targetName} 相关资产`"
       @back="() => router.back()"
@@ -42,7 +42,7 @@
 
         <div
             v-else-if="field.hasOperatorSelect"
-            style="display: flex; align-items: center; border: 1px solid #d9d9d9; border-radius: 2px; width: 280px; background: #fff;"
+            style="display: flex; align-items: center; border: 1px solid var(--arl-border-color); border-radius: 2px; width: 280px; background: var(--arl-bg-white);"
         >
           <template v-if="field.type === 'select'">
             <a-select
@@ -68,11 +68,11 @@
                 @pressEnter="onSearch"
             >
               <template #suffix>
-                <search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" />
+                <search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" />
               </template>
             </a-input>
           </template>
-          <div style="width: 1px; height: 16px; background-color: #d9d9d9;"></div>
+          <div style="width: 1px; height: 16px; background-color: var(--arl-border-color);"></div>
           <a-select
               v-model:value="field.operator"
               :bordered="false"
@@ -92,7 +92,7 @@
             @pressEnter="onSearch"
         >
           <template #suffix>
-            <search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" />
+            <search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" />
           </template>
         </a-input>
       </div>
@@ -101,8 +101,8 @@
     <div v-show="activeTab !== 'syslog'" style="margin-bottom: 16px;">
       <a-button :disabled="!hasSelected" style="margin-right: 16px;" @click="handleBatchDelete">批量删除</a-button>
       <a-button style="margin-right: 16px;" @click="resetSearch">清 除</a-button>
-      <a-button v-if="tabConfig[activeTab]?.exportName" type="primary" style="background-color: #00bcd4; border-color: #00bcd4; margin-right: 16px;" @click="handleExport">导出{{ tabConfig[activeTab].exportName }}</a-button>
-      <a-button v-if="activeTab === 'site'" type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openRiskModal">风险任务下发</a-button>
+      <a-button v-if="tabConfig[activeTab]?.exportName" type="primary" style="margin-right: 16px;" @click="handleExport">导出{{ tabConfig[activeTab].exportName }}</a-button>
+      <a-button v-if="activeTab === 'site'" type="primary" @click="openRiskModal">风险任务下发</a-button>
     </div>
 
     <a-table
@@ -122,7 +122,7 @@
 <!--表格-站点列-->
         <template v-else-if="column.key === 'site'">
           <div class="site-header">
-            <a :href="record.site || record.url" target="_blank" style="color: #00bcd4; font-weight: 500;">
+            <a :href="record.site || record.url" target="_blank" style="font-weight: 500;">
               <img v-if="record.favicon && record.favicon.data" :src="`data:image/png;base64,${record.favicon.data}`" class="site-img" />
               <img v-else-if="typeof record.favicon === 'string'" :src="`data:image/png;base64,${record.favicon}`" class="site-img" />
 
@@ -134,10 +134,10 @@
 
             <div class="mt5" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
 
-              <a-tag v-if="record.is_entry || record.isEntry" closable style="background: #fafafa; color: #666; border-color: #d9d9d9;">入口</a-tag>
+              <a-tag v-if="record.is_entry || record.isEntry" closable style="background: var(--arl-bg-light); color: var(--arl-text-color); border-color: var(--arl-border-color);">入口</a-tag>
 
               <template v-for="(t, idx) in (record.tags || record.tag || [])" :key="idx">
-                <a-tag closable style="background: #fafafa; color: #666; border-color: #d9d9d9;">
+                <a-tag closable style="background: var(--arl-bg-light); color: var(--arl-text-color); border-color: var(--arl-border-color);">
                   {{ typeof t === 'string' ? t : (t.name || t.tag_name || t) }}
                 </a-tag>
               </template>
@@ -169,7 +169,7 @@
 
 
         <template v-else-if="column.key === 'screenshot'">
-          <img v-if="record.screenshot" :src="`/api${record.screenshot}`" style="width: 280px; height: 160px; object-fit: cover; object-position: top; cursor: pointer; border: 1px solid #f0f0f0; border-radius: 4px;" @click="handlePreview(`/api${record.screenshot}`)" />
+          <img v-if="record.screenshot" :src="`/api${record.screenshot}`" style="width: 280px; height: 160px; object-fit: cover; object-position: top; cursor: pointer; border: 1px solid var(--arl-border-color); border-radius: 4px;" @click="handlePreview(`/api${record.screenshot}`)" />
           <span v-else>-</span>
         </template>
 <!--        插槽-->
@@ -194,7 +194,7 @@
 
               <div style="cursor: pointer;">
                 <div v-for="(ip, i) in record.ips.slice(0, 5)" :key="i">{{ ip }}</div>
-                <div style="color: #999; margin-top: 2px;">...等 {{ record.ips.length }} 个</div>
+                <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 2px;">...等 {{ record.ips.length }} 个</div>
               </div>
             </a-tooltip>
 
@@ -220,7 +220,7 @@
               </template>
               <div style="cursor: pointer;">
                 <div v-for="(dom, i) in record.domain.slice(0, 5)" :key="i">{{ dom }}</div>
-                <div style="color: #999; margin-top: 2px;">...等 {{ record.domain.length }} 个</div>
+                <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 2px;">...等 {{ record.domain.length }} 个</div>
               </div>
             </a-tooltip>
             <div v-else>
@@ -243,50 +243,50 @@
           <span>{{ record.ip }}:{{ record.port }}</span>
         </template>
         <template v-else-if="column.key === 'cert_detail'">
-          <div v-if="record.cert" style="font-size: 13px; line-height: 1.8; color: #333; padding: 12px 0;">
+          <div v-if="record.cert" style="font-size: 13px; line-height: 1.8; color: var(--arl-text-color); padding: 12px 0;">
 
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">基本信息</div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">主题名称</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.subject_dn || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.subject_dn || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">签发者名称</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.issuer_dn || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.issuer_dn || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">使用者备用名称</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.extensions?.subjectAltName || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.extensions?.subjectAltName || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">序列号</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.serial_number || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.serial_number || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 16px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">时间</div>
-              <div style="flex: 1; color: #555;">{{ record.cert.validity?.start || '-' }} 至 {{ record.cert.validity?.end || '-' }}</div>
+              <div style="flex: 1; color: var(--arl-text-color);">{{ record.cert.validity?.start || '-' }} 至 {{ record.cert.validity?.end || '-' }}</div>
             </div>
 
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">指纹</div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">SHA-256</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.fingerprint?.sha256 || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.fingerprint?.sha256 || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">SHA-1</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.fingerprint?.sha1 || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.fingerprint?.sha1 || '-' }}</div>
             </div>
 
             <div style="display: flex; margin-bottom: 6px;">
               <div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">MD5</div>
-              <div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.fingerprint?.md5 || '-' }}</div>
+              <div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.fingerprint?.md5 || '-' }}</div>
             </div>
 
           </div>
@@ -311,7 +311,7 @@
         </template>
 
         <template v-else-if="column.key === 'fileleak_url' || column.key === 'url_link' || column.key === 'nuclei_vuln_url'">
-          <a :href="record.url || record.vuln_url" target="_blank" style="color: #00bcd4; word-break: break-all;">
+          <a :href="record.url || record.vuln_url" target="_blank" style="word-break: break-all;">
             {{ record.url || record.vuln_url || '-' }}
           </a>
         </template>
@@ -323,25 +323,25 @@
         </template>
 
         <template v-else-if="column.key === 'ip_count_col'">
-          <span style="color: #00bcd4; cursor: pointer;">{{ record.ip_count || 0 }}</span>
+          <a style="cursor: pointer;">{{ record.ip_count || 0 }}</a>
         </template>
 
         <template v-else-if="column.key === 'domain_count_col'">
-          <span style="color: #00bcd4; cursor: pointer;">{{ record.domain_count || 0 }}</span>
+          <a style="cursor: pointer;">{{ record.domain_count || 0 }}</a>
         </template>
 
         <template v-else-if="column.key === 'verify_command'">
-          <div style="max-height: 100px; overflow-y: auto; background: #f5f5f5; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; word-break: break-all;">
+          <div style="max-height: 100px; overflow-y: auto; background: var(--arl-bg-light); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; word-break: break-all;">
             {{ record.verify_command || record.curl_command || '-' }}
           </div>
         </template>
 
         <template v-else-if="column.key === 'finger_name'">
-          <span style="color: #00bcd4; cursor: pointer; text-decoration: underline;" @click="openFingerModal(record.name)">{{ record.name || '-' }}</span>
+          <a style="cursor: pointer; text-decoration: underline;" @click="openFingerModal(record.name)">{{ record.name || '-' }}</a>
         </template>
 
         <template v-else-if="column.key === 'wih_source'">
-          <div style="word-break: break-all; color: #333; line-height: 1.6;">
+          <div style="word-break: break-all; color: var(--arl-text-color); line-height: 1.6;">
             {{ record.source || '-' }}
           </div>
         </template>
@@ -363,24 +363,24 @@
         <template #bodyCell="{ column, record, index }">
           <template v-if="column.key === 'index'">{{ index + 1 }}</template>
           <template v-else-if="column.key === 'site'">
-            <a :href="record.site || record.url" target="_blank" style="color: #00bcd4;">{{ record.site || record.url }}</a>
+            <a :href="record.site || record.url" target="_blank">{{ record.site || record.url }}</a>
           </template>
         </template>
       </a-table>
     </a-modal>
 
     <div v-if="tabConfig[activeTab] && activeTab !== 'syslog'" style="display: flex; justify-content: space-between; align-items: center; padding: 0 16px;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" @showSizeChange="handleTableChange" />
     </div>
 
     <div v-show="activeTab === 'syslog'">
-      <div style="border: 1px solid #e8e8e8; border-radius: 4px; padding: 8px; background-color: #fafafa;">
+      <div style="border: 1px solid var(--arl-border-color); border-radius: 4px; padding: 8px; background-color: var(--arl-bg-light);">
         <div ref="terminalContainer" style="background-color: #001529; color: #e6f7ff; font-family: 'Fira Code', Consolas, 'Courier New', monospace; padding: 16px; border-radius: 4px; height: calc(100vh - 240px); overflow-y: auto; font-size: 13px; line-height: 1.6; box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);" @mouseenter="pauseScroll = true" @mouseleave="pauseScroll = false">
           <div v-for="(log, idx) in dataSource" :key="log._id || log.id || idx" style="margin-bottom: 6px; word-break: break-all; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 4px;">
-            <span style="color: #00bcd4; margin-right: 8px;">[{{ log.create_time }}]</span>
+            <a style="margin-right: 8px;">[{{ log.create_time }}]</a>
             <span :style="{ color: log.level === 'error' ? '#ff4d4f' : log.level === 'warning' ? '#faad14' : '#52c41a', fontWeight: 'bold', marginRight: '8px' }">[{{ (log.level || 'info').toUpperCase() }}]</span>
-            <span style="color: #1890ff; margin-right: 8px;" v-if="log.title">[{{ log.title }}]</span>
+            <a style="margin-right: 8px;" v-if="log.title">[{{ log.title }}]</a>
             <span style="color: #e6f7ff;">{{ log.message }}</span>
           </div>
           <div v-if="dataSource.length === 0 && !loading" style="color: rgba(255,255,255,0.45); font-style: italic;">[System] 暂无日志记录... (等待日志生成)</div>
@@ -420,7 +420,7 @@
           <a-input v-model:value="riskForm.name" />
         </a-form-item>
 
-        <div style="margin-left: 104px; color: rgba(0,0,0,0.85); margin-top: 16px;">
+        <div style="margin-left: 104px; color: var(--arl-text-color); margin-top: 16px;">
           目标：选择目标数 {{ targetCount }}
         </div>
       </a-form>
@@ -1237,28 +1237,28 @@ const submitRiskTask = async () => {
 <style scoped>
 .site-header { line-height: 1.5; }
 .site-img { width: 16px; height: 16px; margin-right: 8px; vertical-align: middle; }
-.site-word { color: #999; font-size: 12px; margin: 4px 0; }
+.site-word { color: var(--arl-text-color); opacity: 0.45; font-size: 12px; margin: 4px 0; }
 /* 完美复刻原版的 "添加标签" 按钮 (灰色虚线框) */
 .add-tag {
-  color: #666;
+  color: var(--arl-text-color);
   cursor: pointer;
   font-size: 12px;
   margin-left: 8px;
-  border: 1px dashed #d9d9d9;
+  border: 1px dashed var(--arl-border-color);
   padding: 0 7px;
   border-radius: 2px;
-  background: #fafafa;
+  background: var(--arl-bg-light);
   transition: all 0.3s;
 }
 .add-tag:hover {
-  color: #00bcd4;
-  border-color: #00bcd4;
+  color: var(--arl-theme-color);
+  border-color: var(--arl-theme-color);
 }
 .mt5 { margin-top: 5px; }
 
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 24px; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 8px; min-width: 80px; text-align: right; }
+.search-item .label { color: var(--arl-text-color); margin-right: 8px; min-width: 80px; text-align: right; }
 
 /* ================= Headers 样式 ================= */
 .scroll-x {
@@ -1280,7 +1280,7 @@ const submitRiskTask = async () => {
   font-family: Consolas, Menlo, Courier, monospace;
   font-size: 12px;
   line-height: 1.5;
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--arl-text-color); opacity: 0.65;
   white-space: pre; /* 🚨 核心修复：强制不换行，这是触发横向滚动条的关键 */
   word-wrap: normal;
 }
@@ -1303,24 +1303,24 @@ const submitRiskTask = async () => {
 :deep(.ant-tabs-card-bar .ant-tabs-tab) {
   border-radius: 2px 2px 0 0 !important;
   margin-right: 4px !important;
-  border: 1px solid #e8e8e8 !important;
-  background: #fafafa !important;
+  border: 1px solid var(--arl-border-color) !important;
+  background: var(--arl-bg-light) !important;
   transition: all 0.3s;
 }
 :deep(.ant-tabs-card-bar .ant-tabs-tab-active) {
-  background: #fff !important;
+  background: var(--arl-bg-white) !important;
   border-bottom-color: transparent !important;
-  color: #00bcd4 !important;
+  
   font-weight: 500;
 }
 :deep(.ant-tabs-tab:hover) {
-  color: #00bcd4 !important;
+  
 }
 /* ================= 6. 站点列细节补充 ================= */
 /* 完美复刻 Favicon Hash 的次级文本灰色与紧凑间距 */
 /* 修复 Favicon Hash 发虚的问题：恢复原版字号和深色 */
 .site-word {
-  color: rgba(0, 0, 0, 0.85) !important; /* 恢复为标准的深黑色，去掉导致发虚的浅灰 */
+  color: var(--arl-text-color) !important; /* 恢复为标准的深黑色，去掉导致发虚的浅灰 */
   font-size: 14px !important;            /* 恢复标准字号，不缩小 */
   margin-top: 4px;
   margin-bottom: 0;

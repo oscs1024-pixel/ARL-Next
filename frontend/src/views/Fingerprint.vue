@@ -1,31 +1,31 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
 
     <div style="margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openAddModal">添加指纹</a-button>
+      <a-button type="primary" @click="openAddModal">添加指纹</a-button>
       <a-upload
           name="file"
           :show-upload-list="false"
           :customRequest="handleUpload"
           accept=".json,.yaml,.yml"
       >
-        <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;">上传指纹</a-button>
+        <a-button type="primary">上传指纹</a-button>
       </a-upload>
-      <a-button @click="handleExport" type="primary" style="background-color: #00bcd4; border-color: #00bcd4;">一键导出</a-button>
+      <a-button @click="handleExport" type="primary">一键导出</a-button>
     </div>
 
-    <div class="search-row" style="margin-bottom: 20px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+    <div class="search-row" style="margin-bottom: 20px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
       <div class="search-item">
         <span class="label">名称：</span>
         <a-input v-model:value="searchForm.name" placeholder="请输入名称进行搜索" style="width: 220px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
 
       <div class="search-item">
         <span class="label">规则：</span>
         <a-input v-model:value="searchForm.rule" placeholder="请输入规则进行搜索" style="width: 220px;" allowClear @pressEnter="onSearch">
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
     </div>
@@ -53,21 +53,21 @@
     >
       <template #emptyText>
         <div style="padding: 40px 0;">
-          <inbox-outlined style="font-size: 48px; color: #d9d9d9;" />
-          <div style="color: #999; margin-top: 8px;">暂无数据</div>
+          <inbox-outlined style="font-size: 48px; color: var(--arl-border-color);" />
+          <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 8px;">暂无数据</div>
         </div>
       </template>
 
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
-          <span style="color: #00bcd4; cursor: pointer; margin-right: 8px;" @click="openEditModal(record)">编辑</span>
+          <a style="cursor: pointer; margin-right: 8px;" @click="openEditModal(record)">编辑</a>
           <span style="color: #ff4d4f; cursor: pointer;" @click="handleDelete(record)">删除</span>
         </template>
       </template>
     </a-table>
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" />
     </div>
 
@@ -301,5 +301,5 @@ onMounted(() => {
 <style scoped>
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 12px; align-items: center; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 8px; min-width: 40px; text-align: right; white-space: nowrap; }
+.search-item .label { color: var(--arl-text-color); margin-right: 8px; min-width: 40px; text-align: right; white-space: nowrap; }
 </style>

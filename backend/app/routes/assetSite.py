@@ -23,6 +23,7 @@ base_search_fields = {
     'http_server': fields.String(description="Web servers"),
     'headers': fields.String(description="headers"),
     'finger': fields.String(description="指纹"),
+    'finger__eq': fields.String(description="指纹精确匹配"),
     'status': fields.Integer(description="状态码"),
     'favicon.hash': fields.Integer(description="favicon hash"),
     'task_id': fields.String(description="任务 ID"),

@@ -1,10 +1,10 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
 
     <div style="margin-bottom: 24px;">
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4; margin-right: 12px;" @click="showModal">添加任务</a-button>
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4; margin-right: 12px;" @click="openFofaModal">FOFA 任务下发</a-button>
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="goToGlobalView">全局查看</a-button>
+      <a-button type="primary" style="margin-right: 12px;" @click="showModal">添加任务</a-button>
+      <a-button type="primary" style="margin-right: 12px;" @click="openFofaModal">FOFA 任务下发</a-button>
+      <a-button type="primary" @click="goToGlobalView">全局查看</a-button>
     </div>
 
     <div style="margin-bottom: 16px;">
@@ -12,19 +12,19 @@
 
         <a-form-item label="任务名:">
           <a-input v-model:value="searchForm.name" placeholder="请输入任务名进行搜索" style="width: 230px;" allowClear @pressEnter="onSearch">
-            <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+            <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
           </a-input>
         </a-form-item>
 
         <a-form-item label="目标:">
           <a-input v-model:value="searchForm.target" placeholder="请输入目标进行搜索" style="width: 230px;" allowClear @pressEnter="onSearch">
-            <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+            <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
           </a-input>
         </a-form-item>
 
         <a-form-item label="Task_Id:">
           <a-input v-model:value="searchForm.task_id" placeholder="请输入Task_Id进行搜索" style="width: 230px;" allowClear @pressEnter="onSearch">
-            <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+            <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
           </a-input>
         </a-form-item>
 
@@ -40,14 +40,14 @@
 
         <a-form-item label="状态:">
           <a-input v-model:value="searchForm.status" placeholder="请输入状态进行搜索" style="width: 230px;" allowClear @pressEnter="onSearch">
-            <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+            <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
           </a-input>
         </a-form-item>
 
         <a-form-item label="站点数量:">
           <a-input-group compact style="display: flex; width: 230px;">
             <a-input v-model:value="searchForm.site_count" placeholder="请输入数量" style="flex: 1;" @pressEnter="onSearch">
-              <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+              <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
             </a-input>
             <a-select v-model:value="searchForm.site_operator" style="width: 75px;">
               <a-select-option value="=">等于</a-select-option>
@@ -60,7 +60,7 @@
         <a-form-item label="域名数量:">
           <a-input-group compact style="display: flex; width: 230px;">
             <a-input v-model:value="searchForm.domain_count" placeholder="请输入数量" style="flex: 1;" @pressEnter="onSearch">
-              <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+              <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
             </a-input>
             <a-select v-model:value="searchForm.domain_operator" style="width: 75px;">
               <a-select-option value="=">等于</a-select-option>
@@ -73,7 +73,7 @@
         <a-form-item label="WIH数量:">
           <a-input-group compact style="display: flex; width: 230px;">
             <a-input v-model:value="searchForm.wih_count" placeholder="请输入数量" style="flex: 1;" @pressEnter="onSearch">
-              <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+              <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
             </a-input>
             <a-select v-model:value="searchForm.wih_operator" style="width: 75px;">
               <a-select-option value="=">等于</a-select-option>
@@ -118,7 +118,7 @@
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
-          <a style="color: #00bcd4; font-weight: 500;" @click="viewTask(record)">{{ record.name }}</a>
+          <a style="font-weight: 500;" @click="viewTask(record)">{{ record.name }}</a>
         </template>
 
         <template v-else-if="column.key === 'target'">
@@ -131,15 +131,15 @@
 
         <template v-else-if="column.key === 'statistic'">
           <div v-if="record.statistic" style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <a-badge v-if="record.statistic.site_cnt !== undefined" :count="record.statistic.site_cnt" :number-style="{ backgroundColor: '#00bcd4' }" title="站点" />
-            <a-badge v-if="record.statistic.domain_cnt !== undefined" :count="record.statistic.domain_cnt" :number-style="{ backgroundColor: '#1890ff' }" title="域名" />
+            <a-badge v-if="record.statistic.site_cnt !== undefined" :count="record.statistic.site_cnt" title="站点" />
+            <a-badge v-if="record.statistic.domain_cnt !== undefined" :count="record.statistic.domain_cnt" title="域名" />
             <a-badge v-if="record.statistic.ip_cnt !== undefined" :count="record.statistic.ip_cnt" :number-style="{ backgroundColor: '#52c41a' }" title="IP" />
           </div>
-          <span v-else style="color: #999;">-</span>
+          <span v-else style="color: var(--arl-text-color); opacity: 0.45;">-</span>
         </template>
 
         <template v-else-if="column.key === 'options'">
-          <a-tooltip placement="bottom" color="rgba(0, 0, 0, 0.85)">
+          <a-tooltip placement="bottom" color="var(--arl-text-color)">
             <template #title>
               <div v-for="(item, index) in getDetailedOptions(record.options)" :key="index" style="line-height: 2;">
                 {{ item }}
@@ -152,7 +152,7 @@
         </template>
 
         <template v-else-if="column.key === 'status'">
-          <a-tooltip v-if="record.service && record.service.length > 0" placement="bottom" color="rgba(0, 0, 0, 0.85)">
+          <a-tooltip v-if="record.service && record.service.length > 0" placement="bottom" color="var(--arl-text-color)">
             <template #title>
               <div v-for="(item, index) in record.service" :key="index" style="line-height: 2; font-size: 13px;">
                 {{ item.name }}: {{ item.elapsed }}
@@ -167,21 +167,21 @@
         </template>
 
         <template v-else-if="column.key === 'task_id'">
-          <a style="color: #00bcd4; cursor: pointer;" @click="viewTask(record)">{{ record._id }}</a>
+          <a @click="viewTask(record)">{{ record._id }}</a>
         </template>
 
         <template v-else-if="column.key === 'action'">
           <a-space size="small">
-            <a-button type="link" size="small" style="color: #666; padding: 0 4px;" @click="syncTask(record)">同 步</a-button>
-            <a-button type="link" size="small" style="color: #666; padding: 0 4px;" @click="exportTask(record)">导 出</a-button>
+            <a-button type="link" size="small" style="color: var(--arl-text-color); padding: 0 4px;" @click="syncTask(record)">同 步</a-button>
+            <a-button type="link" size="small" style="color: var(--arl-text-color); padding: 0 4px;" @click="exportTask(record)">导 出</a-button>
 
-            <a-button type="link" size="small" style="color: #666; padding: 0 4px;" @click="stopSingleTask(record)" :disabled="record.status === 'done' || record.status === 'error'">停 止</a-button>
+            <a-button type="link" size="small" style="color: var(--arl-text-color); padding: 0 4px;" @click="stopSingleTask(record)" :disabled="record.status === 'done' || record.status === 'error'">停 止</a-button>
 
             <a-popconfirm title="确定要彻底删除该任务及底层资产数据吗？" ok-text="删除" cancel-text="取消" @confirm="deleteSingleTask(record)">
-              <a-button type="link" size="small" style="color: #666; padding: 0 4px;" :disabled="record.status !== 'done' && record.status !== 'error'">删 除</a-button>
+              <a-button type="link" size="small" style="color: var(--arl-text-color); padding: 0 4px;" :disabled="record.status !== 'done' && record.status !== 'error'">删 除</a-button>
             </a-popconfirm>
 
-            <a-button type="link" size="small" style="color: #666; padding: 0 4px;" @click="restartTask(record)">重 启</a-button>
+            <a-button type="link" size="small" style="color: var(--arl-text-color); padding: 0 4px;" @click="restartTask(record)">重 启</a-button>
           </a-space>
         </template>
 
@@ -189,7 +189,7 @@
     </a-table>
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 16px;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" @showSizeChange="handleTableChange" />
     </div>
 
@@ -245,11 +245,11 @@
 
       <a-form-item :wrapper-col="{ offset: 3, span: 21 }" style="margin-top: 16px; margin-bottom: 0;">
         <div v-for="(category, catIndex) in pluginCategories" :key="catIndex" style="margin-bottom: 16px;">
-          <div style="font-size: 14px; font-weight: 500; color: #333; margin-bottom: 8px;">{{ category.title }}</div>
+          <div style="font-size: 14px; font-weight: 500; color: var(--arl-text-color); margin-bottom: 8px;">{{ category.title }}</div>
           <a-row :gutter="[16, 12]">
             <a-col :span="12" v-for="item in category.plugins" :key="item.key">
               <a-checkbox v-model:checked="formState[item.key]">
-                <span style="color: #666; font-size: 13px;">{{ item.label }}</span>
+                <span style="color: var(--arl-text-color); font-size: 13px;">{{ item.label }}</span>
               </a-checkbox>
             </a-col>
           </a-row>
@@ -280,7 +280,7 @@
           <template #notFoundContent>
             <div style="text-align: center; padding: 20px 0;">
               <img src="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg" style="height: 35px; opacity: 0.5;" />
-              <p style="color: #999; margin-top: 8px;">暂无数据</p>
+              <p style="color: var(--arl-text-color); opacity: 0.45; margin-top: 8px;">暂无数据</p>
             </div>
           </template>
         </a-select>
@@ -316,7 +316,7 @@
           <a-input v-model:value="fofaForm.query" placeholder="请输入 FOFA 查询语句" style="flex: 1;" />
           <a-button type="primary" @click="testFofaQuery" :loading="fofaTestLoading">测 试</a-button>
         </div>
-        <div style="margin-top: 8px; color: rgba(0,0,0,0.85); margin-left: 4px;">
+        <div style="margin-top: 8px; color: var(--arl-text-color); margin-left: 4px;">
           结果数：{{ fofaResultCount }}
         </div>
       </a-form-item>
@@ -456,7 +456,7 @@ const handleBatchDelete = () => {
     icon: createVNode(ExclamationCircleOutlined),
     // 3. 利用 createVNode 动态渲染一段包含 Checkbox 的提示内容
     content: createVNode('div', { style: 'margin-top: 8px;' }, [
-      createVNode('div', { style: 'margin-bottom: 16px; color: rgba(0,0,0,0.85);' }, `确认要删除选中的 ${validKeys.length} 项任务吗？`),
+      createVNode('div', { style: 'margin-bottom: 16px; color: var(--arl-text-color);' }, `确认要删除选中的 ${validKeys.length} 项任务吗？`),
       createVNode(Checkbox, {
         defaultChecked: isDeleteData,
         onChange: (e) => { isDeleteData = e.target.checked; } // 监听勾选状态变化
@@ -1042,102 +1042,7 @@ const goToGlobalView = () => {
 ========================================== */
 :deep(.ant-form-item-label > label) {
   font-size: 14px;
-  color: #333;
+  color: var(--arl-text-color);
 }
 
-/* ==========================================
-   2. ARL 专属主题色覆盖 (黑客青 #00bcd4)
-   只作用于带有 arl-theme-modal 类的弹窗
-========================================== */
-
-/* 核心补丁 A：高度还原原版 Checkbox 样式 (2px 微圆角 + 黑客青) */
-:deep(.arl-theme-modal .ant-checkbox-inner) {
-  border-radius: 2px !important;
-}
-:deep(.arl-theme-modal .ant-checkbox-checked .ant-checkbox-inner) {
-  background-color: #00bcd4 !important;
-  border-color: #00bcd4 !important;
-}
-
-/* 覆盖复选框悬浮时的边框色 */
-:deep(.arl-theme-modal .ant-checkbox-wrapper:hover .ant-checkbox-inner),
-:deep(.arl-theme-modal .ant-checkbox:hover .ant-checkbox-inner),
-:deep(.arl-theme-modal .ant-checkbox-input:focus + .ant-checkbox-inner) {
-  border-color: #00bcd4 !important;
-}
-
-/* 覆盖输入框 (Input / Textarea) 聚焦时的光晕和边框 */
-:deep(.arl-theme-modal .ant-input:focus),
-:deep(.arl-theme-modal .ant-input-focused),
-:deep(.arl-theme-modal .ant-input:hover) {
-  border-color: #00bcd4 !important;
-  box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.2) !important;
-}
-
-/* 覆盖下拉选择框 (Select) 聚焦和悬浮时的颜色 */
-:deep(.arl-theme-modal .ant-select:not(.ant-select-disabled):hover .ant-select-selector),
-:deep(.arl-theme-modal .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector) {
-  border-color: #00bcd4 !important;
-  box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.2) !important;
-}
-
-/* 核心补丁 B：还原弹窗底部“下发”主按钮的青色 */
-:deep(.arl-theme-modal .ant-btn-primary) {
-  background-color: #00bcd4 !important;
-  border-color: #00bcd4 !important;
-}
-:deep(.arl-theme-modal .ant-btn-primary:hover),
-:deep(.arl-theme-modal .ant-btn-primary:focus) {
-  background-color: #00acc1 !important; /* 悬浮时稍微加深一点 */
-  border-color: #00acc1 !important;
-}
-</style>
-
-
-<style>
-/* ==========================================
-   ARL 专属主题色覆盖 (黑客青 #00bcd4)
-   利用 .arl-theme-modal 限定范围，绝对不污染其他组件
-========================================== */
-
-/* 1. 将复选框 (Checkbox) 打勾后的背景色和边框染成青色 */
-.arl-theme-modal .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: #00bcd4 !important;
-  border-color: #00bcd4 !important;
-}
-
-/* 2. 修复复选框鼠标悬浮时的蓝色边框 */
-.arl-theme-modal .ant-checkbox-wrapper:hover .ant-checkbox-inner,
-.arl-theme-modal .ant-checkbox:hover .ant-checkbox-inner,
-.arl-theme-modal .ant-checkbox-input:focus + .ant-checkbox-inner {
-  border-color: #00bcd4 !important;
-}
-
-/* 3. 将输入框 (Input / Textarea) 聚焦时的蓝色边框和光晕改成青色 */
-.arl-theme-modal .ant-input:focus,
-.arl-theme-modal .ant-input-focused,
-.arl-theme-modal .ant-input:hover {
-  border-color: #00bcd4 !important;
-  box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.2) !important;
-}
-
-/* 4. 将下拉选择框 (Select) 聚焦和悬浮时的蓝色改成青色 */
-.arl-theme-modal .ant-select:not(.ant-select-disabled):hover .ant-select-selector,
-.arl-theme-modal .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
-  border-color: #00bcd4 !important;
-  box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.2) !important;
-}
-
-/* 5. 核心：把“确定”按钮的默认蓝色强制覆盖为青色 */
-.arl-theme-modal .ant-btn-primary {
-  background-color: #00bcd4 !important;
-  border-color: #00bcd4 !important;
-}
-
-/* 按钮悬浮时颜色微微加深，提升交互手感 */
-.arl-theme-modal .ant-btn-primary:hover,
-.arl-theme-modal .ant-btn-primary:focus {
-  background-color: #00acc1 !important;
-  border-color: #00acc1 !important;
-}
 </style>

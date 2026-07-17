@@ -8,6 +8,7 @@ logger = get_logger()
 
 base_search_fields = {
     'name': fields.String(required=False, description="指纹名称"),  # 字段名没搞好
+    'name__eq': fields.String(required=False, description="指纹名称精确匹配"),
     "task_id": fields.String(description="任务 ID"),
     "cnt": fields.Integer(description="数目"),
 }

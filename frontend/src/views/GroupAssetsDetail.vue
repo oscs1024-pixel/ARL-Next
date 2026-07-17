@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
 
     <h2 style="font-size: 20px; font-weight: 500; margin-bottom: 24px;">{{ targetName }}相关资产</h2>
 
@@ -50,49 +50,49 @@
             allowClear
             @pressEnter="onSearch"
         >
-          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: rgba(0,0,0,0.25);" /></template>
+          <template #suffix><search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" /></template>
         </a-input>
       </div>
 
       <div class="search-item" style="gap: 8px; margin-left: 4px;">
         <a-button @click="resetSearch">清 除</a-button>
 
-        <a-button v-if="activeTab !== 'ip' && tabConfig[activeTab]?.exportUrl" type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="handleExport">导出{{ tabConfig[activeTab].tabName }}</a-button>
+        <a-button v-if="activeTab !== 'ip' && tabConfig[activeTab]?.exportUrl" type="primary" @click="handleExport">导出{{ tabConfig[activeTab].tabName }}</a-button>
 
         <template v-if="activeTab === 'ip'">
-          <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="handleIPExport('port')">导出 IP 端口</a-button>
-          <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="handleIPExport('domain')">导出域名</a-button>
-          <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="handleIPExport('ip')">导出IP</a-button>
+          <a-button type="primary" @click="handleIPExport('port')">导出 IP 端口</a-button>
+          <a-button type="primary" @click="handleIPExport('domain')">导出域名</a-button>
+          <a-button type="primary" @click="handleIPExport('ip')">导出IP</a-button>
         </template>
 
-        <a-button v-if="activeTab === 'site'" type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openRiskModal">风险任务下发</a-button>
+        <a-button v-if="activeTab === 'site'" type="primary" @click="openRiskModal">风险任务下发</a-button>
       </div>
 
     </div>
 
     <div style="margin-bottom: 16px; display: flex; gap: 8px;">
       <a-button :disabled="!hasSelected" @click="handleBatchDelete">批量删除</a-button>
-      <a-button v-if="activeTab === 'site'" type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openAddSiteModal">添加站点</a-button>
-      <a-button v-if="activeTab === 'domain'" type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="openAddDomainModal">添加子域名</a-button>
+      <a-button v-if="activeTab === 'site'" type="primary" @click="openAddSiteModal">添加站点</a-button>
+      <a-button v-if="activeTab === 'domain'" type="primary" @click="openAddDomainModal">添加子域名</a-button>
     </div>
 
     <a-table :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }" :loading="loading" :dataSource="dataSource" :columns="columns" :pagination="false" :scroll="{ x: 'max-content' }" size="middle" :rowKey="(record) => record._id || record.id">
       <template #bodyCell="{ column, record, index }">
 
         <template v-if="column.key === 'index'">
-          <span style="color: #00bcd4;">{{ (pagination.current - 1) * pagination.pageSize + index + 1 }}</span>
+          <a style="">{{ (pagination.current - 1) * pagination.pageSize + index + 1 }}</a>
         </template>
 
         <template v-else-if="column.key === 'site'">
           <div class="site-header">
-            <a :href="record.site || record.url" target="_blank" style="color: #00bcd4; font-weight: 500;">
+            <a :href="record.site || record.url" target="_blank" style="font-weight: 500;">
               <img v-if="record.favicon && record.favicon.data" :src="`data:image/png;base64,${record.favicon.data}`" class="site-img" />
               {{ record.site || record.url }}
             </a>
             <div class="mt5" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
-              <a-tag v-if="record.tag && record.tag.includes('入口')" closable style="background: #fafafa; color: #666; border-color: #d9d9d9;">入口</a-tag>
+              <a-tag v-if="record.tag && record.tag.includes('入口')" closable style="background: var(--arl-bg-light); color: var(--arl-text-color); border-color: var(--arl-border-color);">入口</a-tag>
               <template v-for="(t, idx) in (record.tag || [])" :key="idx">
-                <a-tag v-if="t !== '入口'" closable style="background: #fafafa; color: #666; border-color: #d9d9d9;">{{ t }}</a-tag>
+                <a-tag v-if="t !== '入口'" closable style="background: var(--arl-bg-light); color: var(--arl-text-color); border-color: var(--arl-border-color);">{{ t }}</a-tag>
               </template>
               <span class="add-tag">添加标签</span>
             </div>
@@ -125,7 +125,7 @@
               <template #title><div v-for="(ip, i) in record.ips" :key="'all-ip-'+i">{{ ip }}</div></template>
               <div style="cursor: pointer;">
                 <div v-for="(ip, i) in record.ips.slice(0, 5)" :key="i">{{ ip }}</div>
-                <div style="color: #999; margin-top: 2px;">...等 {{ record.ips.length }} 个</div>
+                <div style="color: var(--arl-text-color); opacity: 0.45; margin-top: 2px;">...等 {{ record.ips.length }} 个</div>
               </div>
             </a-tooltip>
             <div v-else><div v-for="(ip, i) in record.ips" :key="i">{{ ip }}</div></div>
@@ -144,8 +144,8 @@
         </template>
 
         <template v-else-if="column.key === 'source'">
-          <div style="word-break: break-all; color: rgba(0,0,0,0.85); line-height: 1.6;">
-            <a :href="record.source" target="_blank" style="color: #333; text-decoration: none;">
+          <div style="word-break: break-all; color: var(--arl-text-color); line-height: 1.6;">
+            <a :href="record.source" target="_blank" style="color: var(--arl-text-color); text-decoration: none;">
               {{ record.source || '-' }}
             </a>
           </div>
@@ -153,17 +153,17 @@
 
       
         <template v-else-if="column.key === 'cert_detail'">
-          <div v-if="record.cert" style="font-size: 13px; line-height: 1.8; color: #333; padding: 12px 0;">
+          <div v-if="record.cert" style="font-size: 13px; line-height: 1.8; color: var(--arl-text-color); padding: 12px 0;">
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">基本信息</div>
-            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">主题名称</div><div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.subject_dn || '-' }}</div></div>
-            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">签发者名称</div><div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.issuer_dn || '-' }}</div></div>
-            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">使用者备用名称</div><div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.extensions?.subjectAltName || '-' }}</div></div>
-            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">序列号</div><div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.serial_number || '-' }}</div></div>
-            <div style="display: flex; margin-bottom: 16px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">时间</div><div style="flex: 1; color: #555;">{{ record.cert.validity?.start || '-' }} 至 {{ record.cert.validity?.end || '-' }}</div></div>
+            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">主题名称</div><div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.subject_dn || '-' }}</div></div>
+            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">签发者名称</div><div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.issuer_dn || '-' }}</div></div>
+            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">使用者备用名称</div><div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.extensions?.subjectAltName || '-' }}</div></div>
+            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">序列号</div><div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.serial_number || '-' }}</div></div>
+            <div style="display: flex; margin-bottom: 16px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">时间</div><div style="flex: 1; color: var(--arl-text-color);">{{ record.cert.validity?.start || '-' }} 至 {{ record.cert.validity?.end || '-' }}</div></div>
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 12px;">指纹</div>
-            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">SHA-256</div><div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.fingerprint?.sha256 || '-' }}</div></div>
-            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">SHA-1</div><div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.fingerprint?.sha1 || '-' }}</div></div>
-            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">MD5</div><div style="flex: 1; word-break: break-all; color: #555;">{{ record.cert.fingerprint?.md5 || '-' }}</div></div>
+            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">SHA-256</div><div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.fingerprint?.sha256 || '-' }}</div></div>
+            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">SHA-1</div><div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.fingerprint?.sha1 || '-' }}</div></div>
+            <div style="display: flex; margin-bottom: 6px;"><div style="width: 120px; text-align: right; margin-right: 12px; font-weight: 500;">MD5</div><div style="flex: 1; word-break: break-all; color: var(--arl-text-color);">{{ record.cert.fingerprint?.md5 || '-' }}</div></div>
           </div>
           <span v-else>-</span>
         </template>
@@ -180,22 +180,22 @@
           <span v-else>-</span>
         </template>
         <template v-else-if="column.key === 'fileleak_url' || column.key === 'url_link' || column.key === 'nuclei_vuln_url'">
-          <a :href="record.url || record.vuln_url" target="_blank" style="color: #00bcd4; word-break: break-all;">{{ record.url || record.vuln_url || '-' }}</a>
+          <a :href="record.url || record.vuln_url" target="_blank" style="word-break: break-all;">{{ record.url || record.vuln_url || '-' }}</a>
         </template>
         <template v-else-if="column.key === 'verify_data'">
-          <div style="max-height: 100px; overflow-y: auto; color: #d93026; font-family: monospace; font-size: 12px; word-break: break-all;">{{ record.verify_data || record.proof || '-' }}</div>
+          <div style="max-height: 100px; overflow-y: auto; color: #e57373; font-family: monospace; font-size: 12px; word-break: break-all;">{{ record.verify_data || record.proof || '-' }}</div>
         </template>
         <template v-else-if="column.key === 'ip_count_col'">
-          <span style="color: #00bcd4; cursor: pointer;">{{ record.ip_count || 0 }}</span>
+          <a style="cursor: pointer;">{{ record.ip_count || 0 }}</a>
         </template>
         <template v-else-if="column.key === 'domain_count_col'">
-          <span style="color: #00bcd4; cursor: pointer;">{{ record.domain_count || 0 }}</span>
+          <a style="cursor: pointer;">{{ record.domain_count || 0 }}</a>
         </template>
         <template v-else-if="column.key === 'verify_command'">
-          <div style="max-height: 100px; overflow-y: auto; background: #f5f5f5; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; word-break: break-all;">{{ record.verify_command || record.curl_command || '-' }}</div>
+          <div style="max-height: 100px; overflow-y: auto; background: var(--arl-bg-light); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; word-break: break-all;">{{ record.verify_command || record.curl_command || '-' }}</div>
         </template>
         <template v-else-if="column.key === 'finger_name'">
-          <span style="color: #00bcd4; cursor: pointer;" @click="openFingerModal(record.name)">{{ record.name || '-' }}</span>
+          <a style="cursor: pointer;" @click="openFingerModal(record.name)">{{ record.name || '-' }}</a>
         </template>
         <template v-else-if="column.key === 'host'">
           <span>{{ record.ip }}:{{ record.port }}</span>
@@ -218,7 +218,7 @@
         <template #bodyCell="{ column, record, index }">
           <template v-if="column.key === 'index'">{{ index + 1 }}</template>
           <template v-else-if="column.key === 'site'">
-            <a :href="record.site || record.url" target="_blank" style="color: #00bcd4;">{{ record.site || record.url }}</a>
+            <a :href="record.site || record.url" target="_blank">{{ record.site || record.url }}</a>
           </template>
         </template>
       </a-table>
@@ -226,7 +226,7 @@
 
 
     <div v-if="tabConfig[activeTab]" style="display: flex; justify-content: space-between; align-items: center; padding: 0 16px; margin-top: 16px;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" />
     </div>
 
@@ -259,7 +259,7 @@
         </a-form-item>
 
         <a-form-item label="目标" style="margin-bottom: 0;">
-          <span style="color: rgba(0,0,0,0.65);">选择目标数 {{ currentTargetCount }}</span>
+          <span style="color: var(--arl-text-color); opacity: 0.65;">选择目标数 {{ currentTargetCount }}</span>
         </a-form-item>
 
       </a-form>
@@ -1020,16 +1020,16 @@ const submitAddDomain = async () => {
 /* 🚨 将原本的 gap: 16px 24px 改为更紧凑的 16px 12px */
 .search-row { display: flex; flex-wrap: wrap; gap: 16px 12px; align-items: center; }
 .search-item { display: flex; align-items: center; }
-.search-item .label { color: rgba(0,0,0,0.85); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
+.search-item .label { color: var(--arl-text-color); margin-right: 8px; min-width: 60px; text-align: right; white-space: nowrap; }
 .scroll-x { width: 100%; max-width: 400px; overflow-x: auto; }
-.scroll-x pre { margin: 0; font-family: Consolas, monospace; font-size: 12px; color: rgba(0, 0, 0, 0.65); }
-:deep(.ant-tabs-card-bar .ant-tabs-tab) { border-radius: 2px 2px 0 0 !important; margin-right: 4px !important; border: 1px solid #e8e8e8 !important; background: #fafafa !important; }
-:deep(.ant-tabs-card-bar .ant-tabs-tab-active) { background: #fff !important; color: #00bcd4 !important; font-weight: 500; border-bottom-color: transparent !important; }
+.scroll-x pre { margin: 0; font-family: Consolas, monospace; font-size: 12px; color: var(--arl-text-color); opacity: 0.65; }
+:deep(.ant-tabs-card-bar .ant-tabs-tab) { border-radius: 2px 2px 0 0 !important; margin-right: 4px !important; border: 1px solid var(--arl-border-color) !important; background: var(--arl-bg-light) !important; }
+:deep(.ant-tabs-card-bar .ant-tabs-tab-active) { background: var(--arl-bg-white) !important;  font-weight: 500; border-bottom-color: transparent !important; }
 
 .site-header { line-height: 1.5; }
 .site-img { width: 16px; height: 16px; margin-right: 8px; vertical-align: middle; }
-.add-tag { color: #666; cursor: pointer; font-size: 12px; border: 1px dashed #d9d9d9; padding: 0 7px; border-radius: 2px; background: #fafafa; transition: all 0.3s; }
-.add-tag:hover { color: #00bcd4; border-color: #00bcd4; }
+.add-tag { color: var(--arl-text-color); cursor: pointer; font-size: 12px; border: 1px dashed var(--arl-border-color); padding: 0 7px; border-radius: 2px; background: var(--arl-bg-light); transition: all 0.3s; }
+.add-tag:hover {  }
 .mt5 { margin-top: 5px; }
 
 </style>

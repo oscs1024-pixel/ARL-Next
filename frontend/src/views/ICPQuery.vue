@@ -1,25 +1,25 @@
 <template>
-  <div style="background-color: #fff; padding: 24px; min-height: calc(100vh - 64px);">
+  <div style="background-color: var(--arl-bg-layout); padding: 24px; min-height: calc(100vh - 64px);">
     <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
-      <a-button type="primary" style="background-color: #00bcd4; border-color: #00bcd4;" @click="showTycModal">新建企业资产查询</a-button>
-      <a-button style="background-color: #00bcd4; color: #fff; border-color: #00bcd4;" @click="showModal">新建 ICP 查询</a-button>
+      <a-button type="primary" @click="showTycModal">新建企业资产查询</a-button>
+      <a-button type="primary" @click="showModal">新建 ICP 查询</a-button>
     </div>
 
-    <div class="search-row" style="margin-bottom: 20px; background-color: #f9f9f9; padding: 16px; border-radius: 4px;">
+    <div class="search-row" style="margin-bottom: 20px; background-color: var(--arl-bg-light); padding: 16px; border-radius: 4px;">
       <a-form :model="searchForm" layout="inline" style="row-gap: 16px;">
         <a-form-item label="任务名:">
           <a-input v-model:value="searchForm.name" placeholder="请输入任务名" style="width: 230px;" allowClear @pressEnter="onSearch">
-            <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+            <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
           </a-input>
         </a-form-item>
         <a-form-item label="公司名称:">
           <a-input v-model:value="searchForm.target" placeholder="请输入公司名称" style="width: 230px;" allowClear @pressEnter="onSearch">
-            <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+            <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
           </a-input>
         </a-form-item>
         <a-form-item label="状态:">
           <a-input v-model:value="searchForm.status" placeholder="请输入状态" style="width: 230px;" allowClear @pressEnter="onSearch">
-            <template #suffix><search-outlined @click="onSearch" style="color: rgba(0,0,0,.25); cursor: pointer;"/></template>
+            <template #suffix><search-outlined @click="onSearch" style="color: var(--arl-text-color); opacity: 0.25; cursor: pointer;"/></template>
           </a-input>
         </a-form-item>
       </a-form>
@@ -44,7 +44,7 @@
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'name'">
-          <a style="color: #00bcd4; font-weight: 500;" @click="viewTask(record)">{{ record.name }}</a>
+          <a style="color: var(--arl-theme-color); font-weight: 500;" @click="viewTask(record)">{{ record.name }}</a>
         </template>
         <template v-else-if="column.key === 'status'">
           <a-tag :color="getStatusColor(record.status)">{{ record.status }}</a-tag>
@@ -68,7 +68,7 @@
     </a-table>
 
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 16px;">
-      <div style="color: rgba(0,0,0,.65);">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
+      <div style="color: var(--arl-text-color); opacity: 0.65;">共 {{ Math.ceil(pagination.total / pagination.pageSize) || 1 }} 页 / {{ pagination.total }} 条数据</div>
       <a-pagination v-model:current="pagination.current" v-model:pageSize="pagination.pageSize" :total="pagination.total" show-size-changer @change="handleTableChange" @showSizeChange="handleTableChange" />
     </div>
   </div>
@@ -450,6 +450,7 @@ const submitSync = async () => {
     if (res.code === 200) {
       message.success({ content: res.message || '同步成功', key: 'syncIcp', duration: 2 });
       syncModalVisible.value = false;
+      router.push('/group');
     } else {
       message.error({ content: res.message || '同步失败', key: 'syncIcp', duration: 2 });
     }
