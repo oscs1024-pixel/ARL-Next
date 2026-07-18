@@ -89,7 +89,10 @@ class PollingHandler(BaseHTTPRequestHandler):
         
         self.log_append("[INFO] 📦 正在拉取核心镜像以提取最新架构配置...")
         image_name = "crpi-laul1izptqrf0tkf.cn-beijing.personal.cr.aliyuncs.com/owl234-arl-prod/arl-web:latest"
-        self.run_command(["docker", "pull", image_name])
+        if not self.run_command(["docker", "pull", image_name]):
+            self.log_append("[ERROR] ❌ 核心镜像拉取失败，可能是网络波动。已中止更新流程，请稍后重试。")
+            time.sleep(5)
+            return
         
         self.log_append("[INFO] 📦 正在提取并覆盖最新基础架构文件...")
         cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -98,7 +101,7 @@ class PollingHandler(BaseHTTPRequestHandler):
             "-v", f"{cwd}:/host",
             image_name,
             "bash", "-c",
-            "cp /code/start-prod.sh /code/docker-compose.prod.yml /host/ 2>/dev/null || true; cp /code/updater/updater.py /host/updater/ 2>/dev/null || true"
+            "cp /code/start-prod.sh /code/docker-compose.prod.yml /host/ 2>/dev/null || true; mkdir -p /host/updater && cp /code/updater/updater.py /host/updater/ 2>/dev/null || true"
         ]
         self.run_command(copy_cmd)
         
@@ -158,18 +161,18 @@ class PollingHandler(BaseHTTPRequestHandler):
                         if not line:
                             continue
                             
-                        if any(x in line for x in ['Downloading', 'Extracting', 'Waiting']):
-                            parts = line.split(': ', 1)
-                            if len(parts) >= 2:
-                                dynamic_progress[parts[0]] = parts[1]
-                            else:
-                                dynamic_progress["_general"] = line
-                            continue
+                        match = re.search(r'([a-zA-Z0-9_-]+)(?:\s+|:\s+)(Downloading|Extracting|Waiting|Pulling|Already exists|Pull complete|Download complete|Pulled)', line, re.IGNORECASE)
+                        if match:
+                            layer_id = match.group(1)
+                            status_word = match.group(2).lower()
                             
-                        if 'complete' in line.lower():
-                            parts = line.split(': ', 1)
-                            if len(parts) >= 2 and parts[0] in dynamic_progress:
-                                del dynamic_progress[parts[0]]
+                            # If it's a completion state, remove from dynamic_progress
+                            if any(x in status_word for x in ['complete', 'pulled', 'downloaded', 'exists']):
+                                if layer_id in dynamic_progress:
+                                    del dynamic_progress[layer_id]
+                            else:
+                                # Not complete, update progress
+                                dynamic_progress[layer_id] = line[match.start(2):].strip()
                             continue
                         
                         if any(x in line for x in ['Pulling fs layer', 'Already exists', 'Pull complete', 'Download complete', 'Digest:', 'Status: Downloaded newer image', 'Status: Image is up to date']):
@@ -180,6 +183,7 @@ class PollingHandler(BaseHTTPRequestHandler):
                     break
                     
             process.wait()
+            dynamic_progress.clear()
             
             if process.returncode != 0:
                 self.log_append(f"[ERROR] ⚠️ 脚本执行出错，退出码: {process.returncode}")

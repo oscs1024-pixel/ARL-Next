@@ -56,6 +56,7 @@ services:
     image: crpi-laul1izptqrf0tkf.cn-beijing.personal.cr.aliyuncs.com/owl234-arl-prod/arl-worker:latest
     container_name: arl-worker-prod
     restart: always
+    stop_grace_period: 1m
     command: bash -c "/code/backend/start_worker_prod.sh"
     working_dir: /code
     volumes:

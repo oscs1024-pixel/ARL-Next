@@ -10,6 +10,17 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# 强制切换到脚本所在目录，防止因外部调用导致的相对路径报错
+cd "$(dirname "$0")"
+
+# ==================== 并发执行锁机制 ====================
+LOCK_FILE="/tmp/arl_deploy.lock"
+exec 9> "$LOCK_FILE"
+if ! flock -n 9; then
+    echo "❌ 错误：检测到另一个部署或更新任务正在运行中，请稍后再试。"
+    exit 1
+fi
+
 # ==================== 通用加载动画指示器 ====================
 run_with_spinner() {
     local msg="$1"
@@ -34,6 +45,9 @@ run_with_spinner() {
         printf "\r  ✅ %-60s [完成]\n" "$msg"
     else
         printf "\r  ⚠️  %-60s [失败]\n" "$msg"
+        echo "==================== ❌ 详细报错信息 ===================="
+        cat /tmp/arl_deploy_step.log
+        echo "========================================================="
     fi
     return $status
 }
@@ -213,10 +227,11 @@ mkdir -p "$DOCKER_CONFIG_DIR"
 
 echo "⚙️ 正在检查并配置宿主机 Docker 性能调优参数..."
 
-# 使用 Python 脚本安全读取/修改 JSON，防止格式损坏
+# 使用 Python 脚本安全读取/修改 JSON，防止格式损坏并保证原子写入
 UPDATED=$(python3 -c "
 import json, os
 path = '$DOCKER_CONFIG_FILE'
+tmp_path = path + '.tmp'
 data = {}
 if os.path.exists(path) and os.path.getsize(path) > 0:
     try:
@@ -227,9 +242,13 @@ if os.path.exists(path) and os.path.getsize(path) > 0:
         exit(0)
 if data.get('userland-proxy') != False:
     data['userland-proxy'] = False
-    with open(path, 'w') as f:
-        json.dump(data, f, indent=4)
-    print('UPDATED')
+    try:
+        with open(tmp_path, 'w') as f:
+            json.dump(data, f, indent=4)
+        os.replace(tmp_path, path)
+        print('UPDATED')
+    except Exception:
+        print('ERROR')
 else:
     print('NO_CHANGE')
 ")
@@ -256,10 +275,15 @@ chmod 755 ./ssl-certs
 if [ ! -f "./ssl-certs/arl.crt" ] || [ ! -f "./ssl-certs/arl.key" ]; then
     echo "⚠️ 提示：未在 ./ssl-certs/ 目录下检测到 arl.crt 或 arl.key。"
     echo "⚙️ 正在自动生成临时自签名 SSL 证书以确保 Nginx 服务能正常启动..."
-    openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
-        -subj "/C=CN/ST=GD/L=SZ/O=ARL/CN=localhost" \
-        -keyout ./ssl-certs/arl.key \
-        -out ./ssl-certs/arl.crt
+    if command -v openssl &>/dev/null; then
+        openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 \
+            -subj "/C=CN/ST=GD/L=SZ/O=ARL/CN=localhost" \
+            -keyout ./ssl-certs/arl.key \
+            -out ./ssl-certs/arl.crt
+    else
+        echo "❌ 错误：未检测到 openssl，无法生成临时证书。请先安装 openssl，或自行将证书放入 ssl-certs 目录。"
+        exit 1
+    fi
 fi
 
 # 确保 Nginx 容器内的非 root 用户有权限读取证书
@@ -278,7 +302,8 @@ UPDATER_SCRIPT="$UPDATER_DIR/updater.py"
 SERVICE_FILE="/etc/systemd/system/arl-updater.service"
 
 if [ -f "$UPDATER_SCRIPT" ]; then
-    cat > "$SERVICE_FILE" <<EOF
+    if [ -d "/etc/systemd/system" ] && command -v systemctl &>/dev/null; then
+        cat > "$SERVICE_FILE" <<EOF
 [Unit]
 Description=ARL-Next Update Service
 After=network.target docker.service
@@ -295,13 +320,16 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
-    systemctl daemon-reload
-    if [ "$ARL_UPDATER_SKIP_RESTART" != "1" ]; then
-        systemctl enable arl-updater.service >/dev/null 2>&1
-        systemctl restart arl-updater.service
-        echo "✅ 系统更新服务启动成功！"
+        systemctl daemon-reload
+        if [ "$ARL_UPDATER_SKIP_RESTART" != "1" ]; then
+            systemctl enable arl-updater.service >/dev/null 2>&1
+            systemctl restart arl-updater.service
+            echo "✅ 系统更新服务启动成功！"
+        else
+            echo "✅ 跳过重启当前正在执行的更新服务..."
+        fi
     else
-        echo "✅ 跳过重启当前正在执行的更新服务..."
+        echo "⚠️ 警告：当前系统不支持 systemd，跳过系统更新服务的配置。"
     fi
 else
     echo "⚠️ 警告：未找到更新服务脚本 $UPDATER_SCRIPT，将跳过更新服务的配置。"
@@ -319,10 +347,23 @@ if [ ! -f "./frontend/.htpasswd" ]; then
 fi
 
 echo "🐳 正在从阿里云镜像库极速拉取最新构建..."
-docker compose -f docker-compose.prod.yml pull
+MAX_RETRIES=3
+RETRY_COUNT=0
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if docker compose -f docker-compose.prod.yml pull; then
+        break
+    fi
+    RETRY_COUNT=$((RETRY_COUNT+1))
+    if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+        echo "❌ 错误：多次拉取镜像失败，请检查服务器网络或稍后再试。"
+        exit 1
+    fi
+    echo "⚠️ 镜像拉取遇到网络波动，正在进行第 $RETRY_COUNT 次重试 (等待 5 秒)..."
+    sleep 5
+done
 
-echo "🚀 正在启动生产多服务容器组..."
-docker compose -f docker-compose.prod.yml up -d
+echo "🚀 正在启动生产多服务容器组并清理可能遗留的孤儿容器..."
+docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
 echo "⏳ 正在等待容器服务启动并进行健康状态检查 (大约需要 15 秒)..."
 sleep 15
@@ -337,6 +378,9 @@ if [ -n "$FAILED_SERVICES" ]; then
     echo "👉 建议稍后通过终端进入服务器执行 'docker compose -f docker-compose.prod.yml logs <服务名>' 查看具体报错。"
 else
     echo "✅ 所有容器均已成功启动并稳定运行中！系统更新成功！"
+    echo "🧹 正在清理构建过程中产生的废弃镜像缓存以释放磁盘空间..."
+    docker image prune -f &>/dev/null || true
+    echo "✅ 磁盘空间清理完成！"
 fi
 
 # 5. 获取本地与公网真实 IP 并展示

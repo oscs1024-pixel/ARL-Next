@@ -670,11 +670,11 @@ admin123
       <div style="margin-bottom: 15px;">
         <a-progress :percent="updateProgress" status="active" />
       </div>
-      <div style="background-color: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; height: 400px; overflow-y: auto; scroll-behavior: smooth;" ref="terminalRef">
+      <div style="background-color: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; height: 400px; overflow-y: auto;" ref="terminalRef">
         <pre style="margin: 0; white-space: pre-wrap; font-family: inherit; color: inherit; background: transparent; border: none; padding: 0;">{{ updateLogs }}</pre>
       </div>
       <div v-if="updateFinished" style="margin-top: 15px; text-align: center;">
-        <a-button type="primary" @click="() => window.location.reload()">重新加载页面</a-button>
+        <a-button type="primary" size="large" @click="() => window.location.reload()">🎉 更新完成，点击重新加载页面</a-button>
       </div>
     </a-modal>
   </div>
@@ -1507,20 +1507,21 @@ const startUpdate = async () => {
         if (logText.includes('同步完毕')) updateProgress.value = 50;
         if (logText.includes('开始执行 start-prod.sh')) updateProgress.value = 85;
         
-        updateLogs.value = logText;
-        scrollToBottom();
+        if (updateLogs.value !== logText) {
+          updateLogs.value = logText;
+          scrollToBottom();
+        }
 
         // 检查是否结束
         if (logText.includes('[DONE]')) {
           clearInterval(pollInterval);
           updateProgress.value = 100;
           updateFinished.value = true;
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
+          message.success('🎉 系统更新成功！请点击下方的按钮重新加载页面。', 5);
         } else if (logText.includes('[ERROR]')) {
           clearInterval(pollInterval);
           updateFinished.value = true;
+          message.error('❌ 系统更新遇到错误，请查看日志！', 8);
         }
       } catch (err) {
         // 网络请求失败（容器重启时）忽略错误，继续轮询

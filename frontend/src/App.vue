@@ -63,9 +63,11 @@ const handleBgImageChange = (e) => {
     document.body.style.backgroundPosition = 'center';
     document.body.style.backgroundAttachment = 'fixed';
     document.body.classList.add('has-bg-image');
+    document.documentElement.classList.add('has-bg-image');
   } else {
     document.body.style.backgroundImage = 'none';
     document.body.classList.remove('has-bg-image');
+    document.documentElement.classList.remove('has-bg-image');
   }
 };
 
@@ -117,6 +119,7 @@ onMounted(() => {
       document.body.style.backgroundPosition = 'center';
       document.body.style.backgroundAttachment = 'fixed';
       document.body.classList.add('has-bg-image');
+      document.documentElement.classList.add('has-bg-image');
     } else {
       document.body.style.backgroundColor = isDarkMode.value ? '#0f172a' : '#f1f5f9';
       document.documentElement.style.backgroundColor = isDarkMode.value ? '#0f172a' : '#f1f5f9';
@@ -141,15 +144,19 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   /* 将背景底色统一刷成动态变量，避免边缘有白边或刷新闪烁 */
   background-color: var(--arl-bg-layout, #f1f5f9);
+}
+
+html.has-bg-image, body.has-bg-image {
+  background-color: transparent !important;
 }
 
 /* 让 Vue 的挂载根节点也 100% 撑满 */
 #app {
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
   max-width: none !important; /* 强行覆盖可能遗留的 max-width */
   padding: 0 !important;      /* 强行覆盖可能遗留的 padding */
 }
