@@ -72,9 +72,13 @@ ARL-Next 采用前后端解耦的微服务架构，核心模块如下：
 * **🛡️ 极致防护**：自动签发 SSL 并强制生成 **Basic Auth 前置拦截**，核心组件全内网隔离。
 * **🔄 平滑热更**：支持从 Web 端一键平滑重启升级，彻底免去 SSH 登录。
 
-#### 🚀 部署步骤
+#### 🚀 部署方式选择
 
-> 💡 **防阻断一键安装**：只需一台干净的 Ubuntu/Debian 服务器（需 `root` 权限），直接复制并执行下方完整长命令，系统将自动完成 Docker 安装、配置文件提取并启动。
+你可以根据服务器的网络情况，选择以下任意一种方式进行部署：
+
+**方法一：防阻断一键部署（⭐ 推荐，适用于国内服务器）**
+
+无需科学上网，只需一台干净的 Ubuntu/Debian 服务器（需 `root` 权限），直接复制并执行下方命令。系统将自动完成 Docker 安装、配置文件提取并启动服务。
 
 ```bash
 apt-get update && apt-get install -y docker.io docker-compose-v2 && \
@@ -83,8 +87,6 @@ docker pull crpi-laul1izptqrf0tkf.cn-beijing.personal.cr.aliyuncs.com/owl234-arl
 docker rm -f arl-temp 2>/dev/null || true && \
 docker create --name arl-temp crpi-laul1izptqrf0tkf.cn-beijing.personal.cr.aliyuncs.com/owl234-arl-prod/arl-web:latest && \
 docker cp arl-temp:/code/start-prod.sh ./ && \
-docker cp arl-temp:/code/backend/start_web_prod.sh ./ && \
-docker cp arl-temp:/code/backend/start_worker_prod.sh ./ && \
 docker cp arl-temp:/code/docker-compose.prod.yml ./ && \
 docker cp arl-temp:/code/updater ./ && \
 docker cp arl-temp:/code/version.txt ./ && \
@@ -92,7 +94,19 @@ docker rm arl-temp && \
 chmod +x start-prod.sh && \
 bash start-prod.sh
 ```
+
+**方法二：常规 Github 浅克隆部署（适用于海外服务器或需保留源码）**
+
+如果你的网络环境允许直连 Github，且希望在服务器上保留项目源码，可采用常规浅拉取方式（注：需自行确保已安装 Docker 环境）：
+
+```bash
+git clone --depth 1 https://github.com/owl234/ARL-Next.git && cd ARL-Next
+chmod +x start-prod.sh
+bash start-prod.sh
+```
+
 访问 `https://<你的服务器IP>:5173` 即可登录。
+
 
 > 🛡️ **安全登录必读**：
 > 1. **首层防御弹窗 (Basic Auth)**：输入账号 `admin` / 密码 `arl_next`
@@ -100,7 +114,6 @@ bash start-prod.sh
 > *(首次自签名证书请忽略浏览器不安全提示)*
 
 > ⚙️ **商业证书替换 (可选)**：将证书重命名为 `arl.crt` 和 `arl.key` 放至 `ssl-certs/` 目录，重新执行 `start-prod.sh` 即可。
-
 ---
 
 ### 开发环境部署 (前端本地 + Docker后端)

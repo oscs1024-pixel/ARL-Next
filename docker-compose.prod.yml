@@ -37,7 +37,6 @@ services:
     command: bash -c "/code/backend/start_web_prod.sh"
     working_dir: /code
     volumes:
-      - ./start_web_prod.sh:/code/backend/start_web_prod.sh
       - arl_screenshots:/code/backend/app/tmp_screenshot
       - arl_poc_plugins:/code/backend/ARL-NPoC/xing/plugins
       - arl_poc_dicts:/code/backend/ARL-NPoC/xing/dicts
@@ -62,7 +61,6 @@ services:
     command: bash -c "/code/backend/start_worker_prod.sh"
     working_dir: /code
     volumes:
-      - ./start_worker_prod.sh:/code/backend/start_worker_prod.sh
       - arl_screenshots:/code/backend/app/tmp_screenshot
       - arl_poc_plugins:/code/backend/ARL-NPoC/xing/plugins
       - arl_poc_dicts:/code/backend/ARL-NPoC/xing/dicts
