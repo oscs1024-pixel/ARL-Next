@@ -208,9 +208,17 @@ def submit_task(task_data):
     }
 
     try:
-        # 5. 【真正的灵魂所在】：调用 .delay() 异步下发任务！ƒ
-        # 这行代码一执行，任务就被扔进了消息队列（如 RabbitMQ/Redis），Celery 工人会在后台接单执行。
-        celery_id = celerytask.arl_task.delay(options=task_options)
+        # 5. 【真正的灵魂所在】：动态分配轻重队列！
+        from app.modules import CeleryRoutingKey
+        light_actions = [
+            CeleryAction.FOFA_TASK,
+            CeleryAction.ASSET_SITE_UPDATE,
+            CeleryAction.ADD_ASSET_SITE_TASK,
+            CeleryAction.ASSET_WIH_UPDATE,
+        ]
+        target_queue = CeleryRoutingKey.ASSET_TASK_LIGHT if celery_action in light_actions else CeleryRoutingKey.ASSET_TASK_HEAVY
+        
+        celery_id = celerytask.arl_task.apply_async(kwargs={'options': task_options}, queue=target_queue)
 
         # 记录日志
         logger.info("target:{} task_id:{} celery_id:{}".format(target, task_id, celery_id))

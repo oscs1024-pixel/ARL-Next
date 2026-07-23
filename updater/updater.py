@@ -19,6 +19,14 @@ class PollingHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_url = urlparse(self.path)
         
+        # 仅允许本地或 Docker 内部局域网网段访问，拦截公网裸奔请求
+        client_ip = self.client_address[0]
+        if not (client_ip.startswith("172.") or client_ip.startswith("192.168.") or client_ip.startswith("10.") or client_ip == "127.0.0.1"):
+            self.send_response(403)
+            self.end_headers()
+            self.wfile.write(b'Forbidden: External IP access denied')
+            return
+
         if parsed_url.path == "/update/trigger":
             self.handle_trigger(parsed_url)
         elif parsed_url.path == "/update/log":

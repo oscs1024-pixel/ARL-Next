@@ -4,7 +4,7 @@ from app.utils import conn_db as conn
 from app import utils
 from app import celerytask
 import time
-from app.modules import CeleryAction, SchedulerStatus, AssetScopeType, TaskStatus
+from app.modules import CeleryAction, SchedulerStatus, AssetScopeType, TaskStatus, CeleryRoutingKey
 from app.helpers import task_schedule, asset_site_monitor, asset_wih_monitor
 
 logger = utils.get_logger()
@@ -212,7 +212,7 @@ def submit_job(domain, job_id, scope_id, options=None, name="", scope_type=Asset
             "celery_action": CeleryAction.DOMAIN_EXEC_TASK,
             "data": task_data
         }
-        celery_id = celerytask.arl_task.delay(options=task_options)
+        celery_id = celerytask.arl_task.apply_async(kwargs={'options': task_options}, queue=CeleryRoutingKey.ASSET_TASK_HEAVY)
         logger.info("submit domain job {} {} {}".format(celery_id, domain, scope_id))
 
     if scope_type == AssetScopeType.IP:
@@ -220,7 +220,7 @@ def submit_job(domain, job_id, scope_id, options=None, name="", scope_type=Asset
             "celery_action": CeleryAction.IP_EXEC_TASK,
             "data": task_data
         }
-        celery_id = celerytask.arl_task.delay(options=task_options)
+        celery_id = celerytask.arl_task.apply_async(kwargs={'options': task_options}, queue=CeleryRoutingKey.ASSET_TASK_HEAVY)
         logger.info("submit ip job {} {} {}".format(celery_id, domain, scope_id))
 
 

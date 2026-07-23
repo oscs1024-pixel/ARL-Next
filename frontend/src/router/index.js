@@ -144,16 +144,16 @@ const routes = [
                 meta: { title: '系统设置' }
             },
             {
-                path: '/icpQuery',
-                name: 'ICPQuery',
-                component: () => import('../views/ICPQuery.vue'),
-                meta: { title: 'ICP 备案查询' }
+                path: '/assetRecon',
+                name: 'AssetRecon',
+                component: () => import('../views/AssetRecon.vue'),
+                meta: { title: '企业资产查询' }
             },
             {
-                path: '/icpQuery/assetDetail',
-                name: 'ICPAssetDetail',
-                component: () => import('../views/ICPAssetDetail.vue'),
-                meta: { title: 'ICP 备案资产详情' }
+                path: '/assetRecon/assetDetail',
+                name: 'AssetReconDetail',
+                component: () => import('../views/AssetReconDetail.vue'),
+                meta: { title: '企业信息资产详情' }
             }
         ]
 

@@ -185,6 +185,8 @@ class WebSiteFetchStatus:
 
 class CeleryRoutingKey:
     ASSET_TASK = "arltask"
+    ASSET_TASK_HEAVY = "arltask_heavy"
+    ASSET_TASK_LIGHT = "arltask_light"
     GITHUB_TASK = "arlgithub"
 
 

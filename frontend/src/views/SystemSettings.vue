@@ -242,20 +242,74 @@ admin123
         <div style="max-width: 1000px; padding-bottom: 40px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <span style="color: var(--arl-text-color); opacity: 0.45;">
-              此处的配置用于调整扫描节点 (Worker) 的任务并发处理能力。修改保存后，需要手动重启底层的 Celery Worker 进程或容器以使新配置生效。
+              此处的配置用于精细化控制轻/重任务队列的并发处理能力。
             </span>
-            <a-button type="primary" @click="savePerformanceConfig" :loading="performanceSaveLoading">
-              保存性能配置
-            </a-button>
+            <div>
+
+              <a-button type="primary" @click="savePerformanceConfig" :loading="performanceSaveLoading">
+                保存性能配置
+              </a-button>
+            </div>
           </div>
           <a-spin :spinning="performanceLoading">
             <a-form layout="vertical">
-              <a-form-item label="Celery 并发数 (Concurrency)">
-                <a-input-number v-model:value="performanceForm.celeryConcurrency" :min="1" :max="128" style="width: 200px" />
-                <div style="margin-top: 8px; color: var(--arl-text-color); opacity: 0.45; font-size: 13px;">
-                  设置过大可能会导致内存溢出或目标服务器宕机，建议根据机器配置调整（每增加1个并发约增加 100MB 内存消耗，默认为 2）。
-                </div>
-              </a-form-item>
+              <a-row :gutter="24">
+                <a-col :span="12">
+                  <a-card title="⚙️ 重任务 (Heavy Task) 调度" size="small" style="margin-bottom: 16px; border-radius: 6px; border-left: 4px solid #ff4d4f;">
+                    <a-form-item>
+                      <template #label>
+                        重任务并发数
+                        <a-popover placement="right">
+                          <template #content>
+                            <div style="max-width: 320px;">
+                              <div style="font-weight: bold; margin-bottom: 8px;">[分配规则] 阻塞式长线任务：</div>
+                              <ul style="padding-left: 18px; margin: 0; line-height: 1.8;">
+                                <li>常规域名 / IP 扫描任务</li>
+                                <li>风险巡航任务 (批量漏洞检测)</li>
+                                <li>定时域名 / IP 监控任务</li>
+                              </ul>
+                            </div>
+                          </template>
+                          <InfoCircleOutlined style="margin-left: 4px; color: #888; cursor: pointer;" />
+                        </a-popover>
+                      </template>
+                      <a-input-number v-model:value="performanceForm.celery_heavy_concurrency" :min="1" :max="128" style="width: 100%" />
+                      <div style="margin-top: 8px; color: var(--arl-text-color); opacity: 0.45; font-size: 13px;">
+                        控制常规扫描、风险巡航等长线任务的并发数。单个任务峰值占用内存1G左右，建议配置与内存相同的并发数，过大易导致系统 OOM 或压垮目标。
+                      </div>
+                    </a-form-item>
+                  </a-card>
+                </a-col>
+                <a-col :span="12">
+                  <a-card title="⚡ 轻任务 (Light Task) 调度" size="small" style="margin-bottom: 16px; border-radius: 6px; border-left: 4px solid #52c41a;">
+                    <a-form-item>
+                      <template #label>
+                        轻任务并发数
+                        <a-popover placement="right">
+                          <template #content>
+                            <div style="max-width: 320px;">
+                              <div style="font-weight: bold; margin-bottom: 8px;">[分配规则] 非阻塞单点 API 任务：</div>
+                              <ul style="padding-left: 18px; margin: 0; line-height: 1.8;">
+                                <li>空间测绘查询 (FOFA 等)</li>
+                                <li>更新单个站点信息 (截图/指纹)</li>
+                                <li>Web 目录敏感信息单点提取 (WIH)</li>
+                                <li>手动添加站点</li>
+                                <li>任务数据强制同步重置</li>
+                              </ul>
+                            </div>
+                          </template>
+                          <InfoCircleOutlined style="margin-left: 4px; color: #888; cursor: pointer;" />
+                        </a-popover>
+                      </template>
+                      <a-input-number v-model:value="performanceForm.celery_light_concurrency" :min="1" :max="256" style="width: 100%" />
+                      <div style="margin-top: 8px; color: var(--arl-text-color); opacity: 0.45; font-size: 13px;">
+                        走专用独立通道，不受重任务排队阻塞影响。可以根据带宽资源按需放大 (默认 2)。
+                      </div>
+                    </a-form-item>
+                  </a-card>
+                </a-col>
+              </a-row>
+
             </a-form>
           </a-spin>
         </div>
@@ -674,16 +728,21 @@ admin123
         <pre style="margin: 0; white-space: pre-wrap; font-family: inherit; color: inherit; background: transparent; border: none; padding: 0;">{{ updateLogs }}</pre>
       </div>
       <div v-if="updateFinished" style="margin-top: 15px; text-align: center;">
-        <a-button type="primary" size="large" @click="() => window.location.reload()">🎉 更新完成，点击重新加载页面</a-button>
+        <a-button type="primary" size="large" @click="reloadPage">🎉 更新完成，点击重新加载页面</a-button>
       </div>
     </a-modal>
   </div>
 </template>
 
 <script setup>
+import { InfoCircleOutlined, ThunderboltOutlined } from '@ant-design/icons-vue';
 import { ref, reactive, onMounted, computed, nextTick } from 'vue';
 import { message } from 'ant-design-vue';
 import request from '@/utils/request';
+
+const reloadPage = () => {
+  window.location.reload();
+};
 
 const activeKey = ref('dictionary');
 const loading = ref(false);
@@ -1351,7 +1410,7 @@ const saveSecurityPolicy = async () => {
 };
 
 // ======================= 性能配置管理逻辑 =======================
-const performanceForm = ref({ celeryConcurrency: 2 });
+const performanceForm = ref({ celery_heavy_concurrency: 2, celery_light_concurrency: 2 });
 const performanceLoading = ref(false);
 const performanceSaveLoading = ref(false);
 
@@ -1360,7 +1419,8 @@ const fetchPerformanceConfig = async () => {
   try {
     const res = await request.get('/api/system_config/performance');
     if (res.code === 200) {
-      performanceForm.value.celeryConcurrency = res.data.celery_concurrency || 2;
+      performanceForm.value.celery_heavy_concurrency = res.data.celery_heavy_concurrency || 2;
+      performanceForm.value.celery_light_concurrency = res.data.celery_light_concurrency || 3;
     } else {
       message.error(res.message || '获取性能配置失败');
     }
@@ -1376,7 +1436,8 @@ const savePerformanceConfig = async () => {
   performanceSaveLoading.value = true;
   try {
     const res = await request.post('/api/system_config/performance', {
-      celery_concurrency: performanceForm.value.celeryConcurrency
+      celery_heavy_concurrency: performanceForm.value.celery_heavy_concurrency,
+      celery_light_concurrency: performanceForm.value.celery_light_concurrency
     });
     
     if (res.code === 200) {

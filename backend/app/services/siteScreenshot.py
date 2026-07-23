@@ -40,7 +40,7 @@ class SiteScreenshot:
             tmp_path = f.name
             
         batch_timeout = int(len(self.targets) / self.concurrency * 20 + 60)
-        cmd_parameters = ['node', '/code/backend/app/tools/screenshot_pptr.js', '--file={}'.format(tmp_path)]
+        cmd_parameters = ['node', os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'tools', 'screenshot_pptr.js'), '--file={}'.format(tmp_path)]
         logger.debug("screenshot batch {}".format(" ".join(cmd_parameters)))
 
         try:

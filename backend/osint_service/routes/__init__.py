@@ -10,3 +10,5 @@ def setup_routes(app):
     from .query_routes import setup_query_routes
 
     setup_query_routes(app)
+    from .recon_routes import setup_recon_routes
+    setup_recon_routes(app)

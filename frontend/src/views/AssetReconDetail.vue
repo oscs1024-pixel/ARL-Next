@@ -265,7 +265,7 @@ const handleTableChange = (page, pageSize) => fetchAssets(page, pageSize);
 
 const fetchSyslog = async () => {
   try {
-    const res = await request.get('/syslog/', { params: { task_id: taskId, size: 500, order: 'create_time' } });
+    const res = await request.get('/syslog/', { params: { task_id: taskId, size: 500, order: 'create_time', _t: Date.now() } });
     if (res.code === 200) {
       syslogList.value = res.items || [];
       nextTick(() => {
@@ -311,15 +311,61 @@ const onTabChange = (key) => {
   }
 };
 
+let taskTimer = null;
+let lastStatus = '';
+
+const fetchTaskStatistic = async () => {
+  try {
+    const res = await request.get('/icp/task', { params: { _id: taskId, _t: Date.now() } });
+    if (res.code === 200 && res.items && res.items.length > 0) {
+      const taskData = res.items[0];
+      const stat = taskData.statistic || {};
+      queryCounts.web = stat.web_cnt !== undefined ? stat.web_cnt : queryCounts.web;
+      queryCounts.app = stat.app_cnt !== undefined ? stat.app_cnt : queryCounts.app;
+      queryCounts.mapp = stat.mapp_cnt !== undefined ? stat.mapp_cnt : queryCounts.mapp;
+      queryCounts.kapp = stat.kapp_cnt !== undefined ? stat.kapp_cnt : queryCounts.kapp;
+      queryCounts.invest = stat.invest_cnt !== undefined ? stat.invest_cnt : queryCounts.invest;
+      queryCounts.trademark = stat.trademark_cnt !== undefined ? stat.trademark_cnt : queryCounts.trademark;
+      queryCounts.wechat = stat.wechat_cnt !== undefined ? stat.wechat_cnt : queryCounts.wechat;
+      queryCounts.weibo = stat.weibo_cnt !== undefined ? stat.weibo_cnt : queryCounts.weibo;
+      
+      const currentStatus = taskData.status;
+      if (currentStatus === 'done' || currentStatus === 'error') {
+        if (taskTimer) {
+          clearInterval(taskTimer);
+          taskTimer = null;
+        }
+        stopSyslogTimer();
+        // 如果是从非结束状态刚变为结束状态，立刻刷新一次当前页面
+        if (lastStatus && lastStatus !== 'done' && lastStatus !== 'error') {
+          if (activeTab.value === 'log') {
+            fetchSyslog();
+          } else {
+            fetchAssets(pagination.current, pagination.pageSize);
+          }
+        }
+      }
+      lastStatus = currentStatus;
+    }
+  } catch (error) {
+    console.error('获取任务统计失败:', error);
+  }
+};
+
 onMounted(() => {
   if (taskId) {
     fetchAssets(pagination.current, pagination.pageSize);
+    fetchTaskStatistic();
+    taskTimer = setInterval(fetchTaskStatistic, 5000);
   }
 });
 
 onUnmounted(() => {
   if (syslogTimer) {
     clearInterval(syslogTimer);
+  }
+  if (taskTimer) {
+    clearInterval(taskTimer);
   }
 });
 </script>

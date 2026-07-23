@@ -41,6 +41,10 @@ jobs:
           docker tag rabbitmq:3-management ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/rabbitmq:3-management
           docker push ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/rabbitmq:3-management
 
+          docker pull willfarrell/autoheal:latest
+          docker tag willfarrell/autoheal:latest ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/autoheal:latest
+          docker push ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/autoheal:latest
+
       - name: Build and push Frontend
         uses: docker/build-push-action@v6
         with:
@@ -49,29 +53,35 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/arl-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build and push Web
+      - name: Pre-build check for critical deployment files
+        run: |
+          if ! grep -q "COPY ./version.txt ./start-prod.sh ./docker-compose.prod.yml" Dockerfile.prod; then
+            echo "::error::Dockerfile.prod is missing the critical COPY instruction for deployment scripts. This will break the domestic one-click deployment!"
+            exit 1
+          fi
+
+      - name: Build and push Web and Worker
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile.prod
           platforms: linux/amd64
           push: true
-          tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/arl-web:latest
+          tags: |
+            ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/arl-web:latest
+            ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/arl-worker:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build and push Worker
+      - name: Build and push OSINT Service
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile.prod
+          context: ./backend/osint_service
           platforms: linux/amd64
           push: true
-          tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/arl-worker:latest
-
-      - name: Build and push ICP Query
-        uses: docker/build-push-action@v6
-        with:
-          context: ./backend/icp_query
-          platforms: linux/amd64
-          push: true
-          tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/icp_query:latest
+          tags: ${{ env.ALIYUN_REGISTRY }}/${{ env.ALIYUN_NAMESPACE }}/osint-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

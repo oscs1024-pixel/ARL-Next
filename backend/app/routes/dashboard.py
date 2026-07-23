@@ -139,13 +139,29 @@ class DashboardSysInfo(ARLResource):
         running_tasks += conn('icp_task').count({"status": {"$nin": non_running_statuses}})
         waiting_tasks += conn('icp_task').count({"status": TaskStatus.WAITING})
         
+        # GitHub Business Metrics (Today's Leaks & Intel)
+        today_start_dt = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_start_oid = ObjectId.from_datetime(today_start_dt)
+        
+        today_github_leaks = conn('github_monitor_result').count({"_id": {"$gte": today_start_oid}})
+        
+        today_github_cves = conn('github_cve_history').count({"_id": {"$gte": today_start_oid}})
+        today_github_hackers = conn('github_hackers_history').count({"_id": {"$gte": today_start_oid}})
+        today_github_intel = conn('github_result').count({"_id": {"$gte": today_start_oid}}) + today_github_cves + today_github_hackers
+        
         data = {
             "cpu_percent": cpu_percent,
+            "cpu_count": psutil.cpu_count(logical=True),
             "mem_percent": mem_percent,
+            "mem_total_gb": round(mem.total / (1024 ** 3), 2),
             "disk_percent": disk_percent,
             "tasks": {
                 "running": running_tasks,
                 "waiting": waiting_tasks
+            },
+            "github_today": {
+                "leaks": today_github_leaks,
+                "intel": today_github_intel
             }
         }
         return utils.build_ret(ErrorMsg.Success, data)

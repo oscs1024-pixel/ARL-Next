@@ -33,10 +33,25 @@ class AssetSiteUpdateTask(CommonTask):
         utils.conn_db(self.collection).update_one(query, update)
 
     def save_task_site(self, site_info_list):
+        # [第一性原理：防御重复站点] 查询该 task_id 目前数据库中已有的 site 列表
+        existing_sites = set()
+        for doc in utils.conn_db('site').find({'task_id': self.task_id}, {'site': 1}):
+            existing_sites.add(doc.get('site'))
+
+        seen_sites_in_list = set()
+        insert_count = 0
+
         for site_info in site_info_list:
+            curr_site = site_info.get("site")
+            if curr_site in existing_sites or curr_site in seen_sites_in_list:
+                continue
+            seen_sites_in_list.add(curr_site)
+            
             site_info["task_id"] = self.task_id
             utils.conn_db('site').insert_one(site_info)
-        logger.info("save {} to {}".format(len(site_info_list), self.task_id))
+            insert_count += 1
+            
+        logger.info("save {} to {}".format(insert_count, self.task_id))
 
     def monitor(self):
         from app.services.asset_site_monitor import AssetSiteMonitor, Domain2SiteMonitor

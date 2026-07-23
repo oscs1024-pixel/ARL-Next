@@ -22,11 +22,11 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - DEBIAN_FRONTEND=noninteractive
-      - NO_PROXY=localhost,127.0.0.1,icp_query,mongodb,rabbitmq
+      - NO_PROXY=localhost,127.0.0.1,osint-service,mongodb,rabbitmq
     depends_on:
       - mongodb
       - rabbitmq
-      - icp_query
+      - osint-service
 
   arl-worker:
     build:
@@ -44,11 +44,11 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - DEBIAN_FRONTEND=noninteractive
-      - NO_PROXY=localhost,127.0.0.1,icp_query,mongodb,rabbitmq
+      - NO_PROXY=localhost,127.0.0.1,osint-service,mongodb,rabbitmq
     depends_on:
       - mongodb
       - rabbitmq
-      - icp_query
+      - osint-service
 
   mongodb:
     image: mongo:4.0.27
@@ -75,14 +75,14 @@ services:
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=admin
       - TZ=Asia/Shanghai
-      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit consumer_timeout 36000000
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbit consumer_timeout 1209600000
 
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  icp_query:
-    build: ./backend/icp_query
-    container_name: arl_icp_query_dev
+  osint-service:
+    build: ./backend/osint-service
+    container_name: arl_osint-service_dev
     restart: always
     ports:
       - "16182:16181"

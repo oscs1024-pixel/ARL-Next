@@ -2,8 +2,8 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# 安装 pnpm
-RUN npm install -g pnpm
+# 避免 corepack 下载使用 node:sqlite 的 pnpm v10 导致 Node 20 不兼容报错
+RUN npm install -g pnpm@9
 
 # 利用 Docker 缓存层安装依赖
 COPY package.json pnpm-lock.yaml ./

@@ -592,11 +592,12 @@ class beian:
                     logger.error(f"详情获取异常 dataId={item.get('dataId')} err={e}")
                     return item
 
-            # 分批处理，避免创建过多任务
-            batch_size = max_concurrency * 2
+            # 改为串行慢速获取，避免瞬间并发触发 403 防火墙
+            batch_size = 1
             detailed_list = []
             
             for i in range(0, len(items), batch_size):
+                await asyncio.sleep(1.0)  # 强制请求间隔
                 batch = items[i:i + batch_size]
                 tasks = [fetch_detail(item) for item in batch]
                 batch_results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -638,11 +639,13 @@ class beian:
         total_pages = self._get_total_pages(result, page_size)
 
         for current_page in range(2, total_pages + 1):
+            await asyncio.sleep(2.0)  # 防止请求过快触发 MIIT 403 防火墙
             success, page_result, page_detail_context = await self._query_beian_page(
                 name, sp, current_page, page_size, proxy
             )
             if not success:
-                return False, page_result
+                logger.warning(f"分页获取失败，已抓取至第 {current_page-1} 页，停止继续翻页")
+                break # 不直接抛出错误，而是保留已获取的前几页数据
 
             page_params = page_result.get("params", {})
             all_items.extend(page_params.get("list") or [])

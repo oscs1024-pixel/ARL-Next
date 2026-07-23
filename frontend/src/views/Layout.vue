@@ -8,7 +8,7 @@
 
       <a-menu :style="{ opacity: isUIHidden ? 0 : 1, pointerEvents: isUIHidden ? 'none' : 'auto', transition: 'opacity 0.5s' }" v-model:selectedKeys="selectedKeys" theme="dark" mode="inline" @click="handleMenuClick">
         <a-menu-item key="/dashboard"><DashboardOutlined /><span>仪表盘</span></a-menu-item>
-        <a-menu-item key="/icpQuery"><SearchOutlined /><span>企业资产查询</span></a-menu-item>
+        <a-menu-item key="/assetRecon"><SearchOutlined /><span>企业资产查询</span></a-menu-item>
         <a-menu-item key="/group"><AppstoreOutlined /><span>资产分组</span></a-menu-item>
         <a-menu-item key="/taskList"><GlobalOutlined /><span>任务管理</span></a-menu-item>
         <a-menu-item key="/asset-search"><SearchOutlined /><span>资产搜索</span></a-menu-item>
@@ -295,8 +295,8 @@ watch(() => route.path, (newPath) => {
   // 如果当前在详情页，依然让“任务管理”菜单亮起
   if (newPath.startsWith('/taskList')) {
     selectedKeys.value = ['/taskList'];
-  } else if (newPath.startsWith('/icpQuery')) {
-    selectedKeys.value = ['/icpQuery'];
+  } else if (newPath.startsWith('/assetRecon')) {
+    selectedKeys.value = ['/assetRecon'];
   } else {
     selectedKeys.value = [newPath];
   }
@@ -305,10 +305,10 @@ watch(() => route.path, (newPath) => {
 // 动态计算页面标题
 const currentPageTitle = computed(() => {
   if (route.path.includes('taskDetail')) return '任务详情'; // 详情页标题
-  if (route.path.includes('icpQuery/assetDetail')) return '企业信息资产详情'; // ICP详情页
+  if (route.path.includes('assetRecon/assetDetail')) return '企业信息资产详情'; // ICP详情页
   const titleMap = {
     '/dashboard': '仪表盘',
-    '/icpQuery': '企业资产查询',
+    '/assetRecon': '企业资产查询',
     '/group': '资产分组',
     '/taskList': '任务管理',
     '/asset-search': '资产搜索',

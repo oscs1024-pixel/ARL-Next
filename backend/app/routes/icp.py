@@ -83,7 +83,14 @@ class IcpTask(ARLResource):
         }
 
         # 将任务发给 celery
-        celerytask.icp_query_task.delay(options=options)
+        options["type"] = "icp"
+        import requests
+        try:
+            res = requests.post("http://osint-service:16181/api/v1/recon/start", json=options, timeout=5)
+            res.raise_for_status()
+        except Exception as e:
+            logger.error(f"Failed to trigger osint-service: {e}")
+            conn.update_one({"_id": result.inserted_id}, {"$set": {"status": "error", "error_msg": "请求 osint-service 失败或超时"}})
 
         return build_ret(ErrorMsg.Success, {"task_id": task_id})
 
@@ -155,7 +162,16 @@ class TycTask(ARLResource):
             "query_type": query_type
         }
 
-        celerytask.tyc_query_task.delay(options=options)
+        options["type"] = "tyc"
+        options["tyc_id"] = client.gid
+        options["tyc_token"] = client.token
+        import requests
+        try:
+            res = requests.post("http://osint-service:16181/api/v1/recon/start", json=options, timeout=5)
+            res.raise_for_status()
+        except Exception as e:
+            logger.error(f"Failed to trigger osint-service: {e}")
+            conn.update_one({"_id": result.inserted_id}, {"$set": {"status": "error", "error_msg": "请求 osint-service 失败或超时"}})
 
         return build_ret(ErrorMsg.Success, {"task_id": task_id})
 
@@ -267,39 +283,56 @@ class IcpTaskRestart(ARLResource):
             if not task:
                 return build_ret(ErrorMsg.NotFoundTask, {"task_id": task_id})
 
-            # 删除旧资产
-            conn_db('icp_asset').delete_many({"task_id": task_id})
+            # 克隆旧任务数据
+            task.pop('_id', None)
+            task['status'] = TaskStatus.WAITING
+            task['start_time'] = curr_date()
+            task['end_time'] = "-"
+            task['statistic'] = {"asset_cnt": 0}
+            task['error_msg'] = ""
 
-            # 更新任务状态
-            update = {
-                "$set": {
-                    "status": TaskStatus.WAITING,
-                    "start_time": curr_date(),
-                    "end_time": "-",
-                    "statistic": {"asset_cnt": 0},
-                    "error_msg": ""
-                }
-            }
-            conn_db('icp_task').update_one({"_id": bson.ObjectId(task_id)}, update)
+            # 插入新任务
+            result = conn_db('icp_task').insert_one(task)
+            new_task_id = str(result.inserted_id)
 
             # 重新发起
             if task.get("task_type") == "tyc":
                 options = {
-                    "task_id": task_id,
+                    "task_id": new_task_id,
                     "gid": task.get("gid"),
                     "depth": task.get("depth", 1),
                     "query_type": task.get("query_type", ["web"])
                 }
-                celerytask.tyc_query_task.delay(options=options)
+                options["type"] = "tyc"
+                options["tyc_id"] = task.get("gid")
+                
+                from app.services.tycClient import TycClient
+                client = TycClient()
+                options["tyc_token"] = client.token
+                
+                import requests
+                try:
+                    res = requests.post("http://osint-service:16181/api/v1/recon/start", json=options, timeout=5)
+                    res.raise_for_status()
+                except Exception as e:
+                    logger.error(f"Failed to trigger osint-service: {e}")
+                    conn_db('icp_task').update_one({"_id": result.inserted_id}, {"$set": {"status": "error", "error_msg": "请求 osint-service 失败或超时"}})
             else:
                 options = {
-                    "task_id": task_id,
+                    "task_id": new_task_id,
                     "target": task.get("target"),
                     "query_type": task.get("query_type", ["web"])
                 }
-                celerytask.icp_query_task.delay(options=options)
+                options["type"] = "icp"
+                import requests
+                try:
+                    res = requests.post("http://osint-service:16181/api/v1/recon/start", json=options, timeout=5)
+                    res.raise_for_status()
+                except Exception as e:
+                    logger.error(f"Failed to trigger osint-service: {e}")
+                    conn_db('icp_task').update_one({"_id": result.inserted_id}, {"$set": {"status": "error", "error_msg": "请求 osint-service 失败或超时"}})
 
-            return build_ret(ErrorMsg.Success, {"task_id": task_id})
+            return build_ret(ErrorMsg.Success, {"task_id": new_task_id})
         except Exception as e:
             return build_ret(ErrorMsg.Error, {"error": str(e)})
 

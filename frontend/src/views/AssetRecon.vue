@@ -229,6 +229,7 @@ const columns = [
   { title: '状态', dataIndex: 'status', key: 'status', width: 100 },
   { title: '开始时间', dataIndex: 'start_time', key: 'start_time', width: 160 },
   { title: '结束时间', dataIndex: 'end_time', key: 'end_time', width: 160 },
+  { title: '任务 ID', dataIndex: '_id', key: '_id', width: 220 },
   { title: '操作', key: 'action', width: 200, fixed: 'right' }
 ];
 
@@ -374,7 +375,7 @@ const handleTycOk = async () => {
 const viewTask = (record) => {
   const stats = record.statistic || {};
   router.push({
-    path: '/icpQuery/assetDetail',
+    path: '/assetRecon/assetDetail',
     query: {
       task_id: record._id,
       name: record.name,

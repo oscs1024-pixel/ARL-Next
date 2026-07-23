@@ -13,7 +13,8 @@ security_policy_model = ns.model('SecurityPolicy', {
 })
 
 performance_model = ns.model('Performance', {
-    'celery_concurrency': fields.Integer(required=True, description='Celery并发数')
+    'celery_heavy_concurrency': fields.Integer(required=True, description='重任务Celery并发数'),
+    'celery_light_concurrency': fields.Integer(required=True, description='轻任务Celery并发数')
 })
 
 @ns.route('/security_policy')
@@ -61,12 +62,13 @@ class Performance(ARLResource):
         """
         获取性能配置
         """
-        celery_concurrency = get_performance_config()
+        config = get_performance_config()
         return {
             "code": 200,
             "message": "success",
             "data": {
-                "celery_concurrency": celery_concurrency
+                "celery_heavy_concurrency": config.get("celery_heavy_concurrency", 2),
+                "celery_light_concurrency": config.get("celery_light_concurrency", 3)
             }
         }
 
@@ -77,38 +79,51 @@ class Performance(ARLResource):
         更新性能配置 (支持热扩缩容)
         """
         args = self.get_parser(performance_model).parse_args()
-        new_concurrency = args.get('celery_concurrency', 2)
+        new_heavy = args.get('celery_heavy_concurrency', 2)
+        new_light = args.get('celery_light_concurrency', 3)
 
-        if new_concurrency < 1:
-            new_concurrency = 1
+        if new_heavy < 1:
+            new_heavy = 1
+        if new_light < 1:
+            new_light = 1
 
-        old_concurrency = get_performance_config()
-        diff = new_concurrency - old_concurrency
+        old_config = get_performance_config()
+        old_heavy = old_config.get("celery_heavy_concurrency", 2)
+        old_light = old_config.get("celery_light_concurrency", 3)
+        
+        diff_heavy = new_heavy - old_heavy
+        diff_light = new_light - old_light
 
-        update_performance_config(new_concurrency)
+        update_performance_config(new_heavy, new_light)
 
-        msg = "性能配置更新成功，"
-        if diff != 0:
+        msg = "性能配置更新成功。"
+        
+        # 热扩缩容重任务
+        if diff_heavy != 0 or diff_light != 0:
             try:
                 from app.celerytask import celery as celery_app
                 active_nodes = celery_app.control.inspect().ping()
                 if active_nodes:
-                    target_nodes = [node for node in active_nodes.keys() if node.startswith('celery@arltask')]
-                    if target_nodes:
-                        if diff > 0:
-                            celery_app.control.broadcast('pool_grow', n=diff, destination=target_nodes)
-                            msg += f"已热扩容 {diff} 个并发进程！"
-                        else:
-                            celery_app.control.broadcast('pool_shrink', n=abs(diff), destination=target_nodes)
-                            msg += f"已热回收 {abs(diff)} 个并发进程！"
-                    else:
-                        msg += "未找到存活的 arltask 节点，指令将在下次重启生效。"
+                    heavy_nodes = [node for node in active_nodes.keys() if node.startswith('celery@arltask_heavy')]
+                    light_nodes = [node for node in active_nodes.keys() if node.startswith('celery@arltask_light')]
+                    
+                    if heavy_nodes:
+                        if diff_heavy > 0:
+                            celery_app.control.broadcast('pool_grow', n=diff_heavy, destination=heavy_nodes)
+                        elif diff_heavy < 0:
+                            celery_app.control.broadcast('pool_shrink', n=abs(diff_heavy), destination=heavy_nodes)
+                    
+                    if light_nodes:
+                        if diff_light > 0:
+                            celery_app.control.broadcast('pool_grow', n=diff_light, destination=light_nodes)
+                        elif diff_light < 0:
+                            celery_app.control.broadcast('pool_shrink', n=abs(diff_light), destination=light_nodes)
+                    
+                    msg += " 并发进程热扩缩容指令已下发！"
                 else:
-                    msg += "Celery服务未响应，指令将在下次重启生效。"
+                    msg += " Celery未响应，并发改变将在下次重启生效。"
             except Exception as e:
-                msg += f"尝试热扩缩容失败，请手动重启容器。"
-        else:
-            msg += "并发数未发生改变。"
+                msg += " 热扩缩容执行异常，请重启容器。"
 
         return {
             "code": 200,

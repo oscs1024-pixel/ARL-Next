@@ -1,6 +1,7 @@
 from flask_restx import fields, Namespace
 from app.utils import get_logger, auth
 from . import base_query_fields, ARLResource, get_arl_parser
+from app import utils
 
 ns = Namespace('stat_finger', description="指纹统计信息")
 
@@ -27,6 +28,28 @@ class ARLStatFingerprint(ARLResource):
         指纹统计信息查询
         """
         args = self.parser.parse_args()
-        data = self.build_data(args=args, collection='stat_finger')
+        query = self.build_db_query(args)
 
-        return data
+        # 使用聚合管道来将同名指纹的 cnt 累加
+        pipeline = [
+            {"$match": query},
+            {"$group": {"_id": "$name", "cnt": {"$sum": "$cnt"}}},
+            {"$project": {"_id": 0, "name": "$_id", "cnt": 1}},
+            {"$sort": {"cnt": -1}},
+            {"$skip": (args.page - 1) * args.size},
+            {"$limit": args.size}
+        ]
+        items = list(utils.conn_db('stat_finger').aggregate(pipeline))
+
+        # 计算去重后的指纹总数
+        count_pipeline = [
+            {"$match": query},
+            {"$group": {"_id": "$name"}}
+        ]
+        total = len(list(utils.conn_db('stat_finger').aggregate(count_pipeline)))
+
+        return {
+            "total": total,
+            "items": items,
+            "code": 200
+        }

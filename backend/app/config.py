@@ -70,10 +70,10 @@ class ConfigMeta(type):
 
 
 class Config(object, metaclass=ConfigMeta):
-    CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+    CELERY_BROKER_URL = ""
 
-    MONGO_DB = 'ARLV2'
-    MONGO_URL = 'mongodb://127.0.0.1:27017/'
+    MONGO_DB = ""
+    MONGO_URL = ""
 
     TMP_PATH = os.path.join(basedir, 'tmp')
     if not os.path.exists(TMP_PATH):
@@ -119,14 +119,13 @@ class Config(object, metaclass=ConfigMeta):
     _FOFA_MAX_PAGE = 5      # 最大查询页数
     _FOFA_PAGE_SIZE = 2000  # 每页2000条
 
-    _AUTH = False
+    _AUTH = None
     _API_KEY = ""
 
     _TYC_ID = ""
     _TYC_TOKEN = ""
 
-    # BLACK_IPS = ["127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "0.0.0.0/8"]
-    BLACK_IPS = ["127.0.0.0/8", "0.0.0.0/8"]
+    BLACK_IPS = []
 
     GEOIP_ASN = ""
     GEOIP_CITY = ""

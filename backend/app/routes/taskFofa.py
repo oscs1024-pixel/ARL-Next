@@ -1,6 +1,6 @@
 from flask_restx import Namespace, fields
 from app.utils import get_logger, auth, build_ret, conn_db
-from app.modules import ErrorMsg, CeleryAction
+from app.modules import ErrorMsg, CeleryAction, CeleryRoutingKey
 from app.services.fofaClient import FofaClient
 from app.services import fofa_query
 from app import celerytask
@@ -139,7 +139,7 @@ def submit_fofa_task(task_data):
         "data": task_data
     }
 
-    celery_id = celerytask.arl_task.delay(options=task_options)
+    celery_id = celerytask.arl_task.apply_async(kwargs={'options': task_options}, queue=CeleryRoutingKey.ASSET_TASK_LIGHT)
 
     logger.info("target:{} celery_id:{}".format(task_id, celery_id))
 

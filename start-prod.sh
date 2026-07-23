@@ -210,6 +210,38 @@ check_and_install_compose() {
 # 由于所有的镜像（包含 mongo、rabbitmq）现均由 GitHub Actions 自动推送到阿里云高可用个人私有库
 # 因此直接让 docker-compose 从国内的阿里云仓库 pull，享受极限满速下载。
 
+# 5. 检查并配置 2G Swap 以防 OOM
+check_and_configure_swap() {
+    echo "⚙️ 正在检查宿主机 Swap 虚拟内存..."
+    local swap_size=$(free -g | awk '/^Swap:/ {print $2}')
+    if [ -n "$swap_size" ] && [ "$swap_size" -ge 1 ] 2>/dev/null; then
+        echo "✅ 检测到系统已有 Swap ($swap_size GB)，跳过自动配置。"
+        return 0
+    fi
+    
+    echo "⚠️ 检测到系统未配置 Swap，正在自动划分 2G Swap 空间防止高并发扫描 OOM..."
+    if run_with_spinner "创建 2G Swap 分区文件" dd if=/dev/zero of=/swapfile bs=1M count=2048 status=none; then
+        chmod 600 /swapfile
+        mkswap /swapfile &>/dev/null
+        swapon /swapfile &>/dev/null
+        sysctl vm.swappiness=10 &>/dev/null
+        
+        # 写入 sysctl.conf
+        if ! grep -q "vm.swappiness=10" /etc/sysctl.conf; then
+            echo "vm.swappiness=10" >> /etc/sysctl.conf
+        fi
+        
+        # 写入 fstab 开机自动挂载
+        if ! grep -q "/swapfile" /etc/fstab; then
+            echo "/swapfile none swap sw 0 0" >> /etc/fstab
+        fi
+        
+        echo "✅ 2G Swap 空间自动分配并挂载成功！"
+    else
+        echo "❌ 错误：Swap 分配失败，可能是磁盘空间不足，跳过此步骤。"
+    fi
+}
+
 # ==================== 执行部署流程 ====================
 
 echo "🚀 开始执行 ARL-Next 生产一键部署与调优..."
@@ -218,6 +250,7 @@ echo "🚀 开始执行 ARL-Next 生产一键部署与调优..."
 check_and_install_python3
 check_and_install_docker
 check_and_install_compose
+check_and_configure_swap
 
 # 1. 宿主机 Docker 守护进程性能调优 (userland-proxy)
 DOCKER_CONFIG_DIR="/etc/docker"
@@ -378,6 +411,9 @@ if [ -n "$FAILED_SERVICES" ]; then
     echo "👉 建议稍后通过终端进入服务器执行 'docker compose -f docker-compose.prod.yml logs <服务名>' 查看具体报错。"
 else
     echo "✅ 所有容器均已成功启动并稳定运行中！系统更新成功！"
+    
+
+
     echo "🧹 正在清理构建过程中产生的废弃镜像缓存以释放磁盘空间..."
     docker image prune -f &>/dev/null || true
     echo "✅ 磁盘空间清理完成！"

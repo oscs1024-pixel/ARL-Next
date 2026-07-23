@@ -13,7 +13,10 @@ celery = Celery('task', broker=Config.CELERY_BROKER_URL)
 
 celery.conf.update(
     task_acks_late=True,
-    task_reject_on_worker_lost=True,
+    worker_max_tasks_per_child=50,
+    broker_connection_retry_on_startup=True,
+    task_soft_time_limit=2592000,
+    task_time_limit=2592300,
     worker_prefetch_multiplier=1,
     broker_transport_options={"max_retries": 3, "interval_start": 0, "interval_step": 0.2, "interval_max": 0.5},
 )
@@ -108,13 +111,13 @@ def arl_github(options):
     run_task(options)
 
 
-@celery.task(queue=CeleryRoutingKey.ASSET_TASK)
+@celery.task(queue=CeleryRoutingKey.ASSET_TASK_LIGHT)
 def icp_query_task(options):
     from app.tasks.icp import run_icp_task
     run_icp_task(options)
 
 
-@celery.task(queue=CeleryRoutingKey.ASSET_TASK)
+@celery.task(queue=CeleryRoutingKey.ASSET_TASK_LIGHT)
 def tyc_query_task(options):
     from app.tasks.tyc import run_tyc_task
     run_tyc_task(options)

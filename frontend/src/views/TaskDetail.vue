@@ -802,7 +802,13 @@ const tabConfig = reactive({
     deleteUrl: '/site/delete/', // 视后端情况，如果报错可改为 '/site/delete/'
     // 🚨 截图显示无导出按钮
     searchFields: [
-      { label: 'finger', key: 'name', operator: '=' } // 后端字段是 name
+      { 
+        label: 'finger', 
+        key: 'name', 
+        operator: '模糊匹配',
+        hasOperatorSelect: true,
+        operators: ['模糊匹配', '精确匹配']
+      }
     ],
     cols: [
       { title: '序号', key: 'index', width: 80, align: 'center' },
@@ -882,7 +888,16 @@ const fetchData = async (isPolling = false) => {
 
     for (const key in searchForm.value) {
       if (searchForm.value[key] !== '' && searchForm.value[key] != null) {
-        params[key] = searchForm.value[key];
+        let paramKey = key;
+        const fieldConfig = config.searchFields?.find(f => f.key === key);
+        if (fieldConfig && fieldConfig.hasOperatorSelect) {
+          if (fieldConfig.operator === '大于') paramKey += '__gt';
+          else if (fieldConfig.operator === '小于') paramKey += '__lt';
+          else if (fieldConfig.operator === '不等于') paramKey += '__neq';
+          else if (fieldConfig.operator === '不包含') paramKey += '__not';
+          else if (fieldConfig.operator === '精确匹配') paramKey += '__eq';
+        }
+        params[paramKey] = searchForm.value[key];
       }
     }
 
@@ -932,7 +947,16 @@ const handleExport = async () => {
     if (query.task_id) params.task_id = query.task_id;
     for (const key in searchForm.value) {
       if (searchForm.value[key] !== '' && searchForm.value[key] != null) {
-        params[key] = searchForm.value[key];
+        let paramKey = key;
+        const fieldConfig = config.searchFields?.find(f => f.key === key);
+        if (fieldConfig && fieldConfig.hasOperatorSelect) {
+          if (fieldConfig.operator === '大于') paramKey += '__gt';
+          else if (fieldConfig.operator === '小于') paramKey += '__lt';
+          else if (fieldConfig.operator === '不等于') paramKey += '__neq';
+          else if (fieldConfig.operator === '不包含') paramKey += '__not';
+          else if (fieldConfig.operator === '精确匹配') paramKey += '__eq';
+        }
+        params[paramKey] = searchForm.value[key];
       }
     }
 

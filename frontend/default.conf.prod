@@ -60,8 +60,7 @@ server {
 
     # 3. 代理更新服务 SSE (解决 Mixed Content 与跨域端口屏蔽问题)
     location /update_stream/ {
-        auth_basic off;
-        proxy_pass http://172.18.0.1:8888/update/;
+        proxy_pass http://host.docker.internal:8888/update/;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
         proxy_buffering off;

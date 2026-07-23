@@ -120,8 +120,24 @@ class WebSiteFetch(object):
             self.task_id, len(self.sites), len(self.available_sites))
 
     def save_site_info(self):
+        # [第一性原理：防御重复站点] 查询该 task_id 目前数据库中已有的 site 列表
+        existing_sites = set()
+        for doc in utils.conn_db('site').find({'task_id': self.task_id}, {'site': 1}):
+            existing_sites.add(doc.get('site'))
+            
+        deduplicated_site_info_list = []
+        seen_sites_in_list = set()
+
         for site_info in self.site_info_list:
             curr_site = site_info["site"]
+            
+            # 若数据库已存在，或本次列表内已出现过，则剔除
+            if curr_site in existing_sites or curr_site in seen_sites_in_list:
+                continue
+                
+            seen_sites_in_list.add(curr_site)
+            deduplicated_site_info_list.append(site_info)
+
             site_path = "/image/" + self.task_id
             file_name = '{}/{}.jpg'.format(site_path, utils.gen_filename(curr_site))
             site_info["task_id"] = self.task_id
@@ -139,6 +155,7 @@ class WebSiteFetch(object):
                     if analyze_name not in known_finger_set:
                         site_info["finger"].append(analyze_finger)
 
+        self.site_info_list = deduplicated_site_info_list
         logger.info("save_site_info site:{}, {}".format(len(self.site_info_list), self.__str__()))
         if self.site_info_list:
             utils.conn_db('site').insert_many(self.site_info_list)

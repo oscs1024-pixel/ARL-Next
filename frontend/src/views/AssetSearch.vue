@@ -329,7 +329,7 @@
         </template>
 
         <template v-else-if="column.key === 'finger_name'">
-          <a style="cursor: pointer;">{{ record.name || '-' }}</a>
+          <a style="cursor: pointer;" @click="openFingerModal(record.name)">{{ record.name || '-' }}</a>
         </template>
 
         <template v-else-if="column.key === 'wih_source'">
@@ -370,6 +370,27 @@
         <a-input v-model:value="newTagValue" placeholder="请输入标签名称" />
       </div>
     </a-modal>
+
+    <!-- 指纹统计关联站点弹窗 -->
+    <a-modal v-model:open="fingerModalVisible" :title="`指纹关联站点：${currentFingerName}`" :footer="null" width="800px">
+      <a-table
+        :dataSource="fingerModalData"
+        :columns="fingerModalColumns"
+        :loading="fingerModalLoading"
+        :pagination="false"
+        size="small"
+        rowKey="_id"
+        :scroll="{ y: 400 }"
+      >
+        <template #bodyCell="{ column, record, index }">
+          <template v-if="column.key === 'index'">{{ index + 1 }}</template>
+          <template v-else-if="column.key === 'site'">
+            <a :href="record.site || record.url" target="_blank">{{ record.site || record.url }}</a>
+          </template>
+        </template>
+      </a-table>
+    </a-modal>
+
 </template>
 
 <script setup>
@@ -383,6 +404,39 @@ const route = useRoute();
 const activeTab = ref('site');
 const loading = ref(false);
 const dataSource = ref([]);
+
+const fingerModalVisible = ref(false);
+const currentFingerName = ref('');
+const fingerModalLoading = ref(false);
+const fingerModalData = ref([]);
+const fingerModalColumns = [
+  { title: '序号', key: 'index', width: 60, align: 'center' },
+  { title: '站点 URL', key: 'site', width: 300 },
+  { title: '标题', key: 'title', dataIndex: 'title', width: 200 },
+  { title: '状态码', key: 'status', dataIndex: 'status', width: 100 }
+];
+
+const openFingerModal = async (fingerName) => {
+  currentFingerName.value = fingerName;
+  fingerModalVisible.value = true;
+  fingerModalLoading.value = true;
+  fingerModalData.value = [];
+  try {
+    const res = await request.get('/site/', {
+      params: {
+        finger: fingerName,
+        page: 1,
+        size: 100
+      }
+    });
+    fingerModalData.value = res.items || res.data?.items || [];
+  } catch (error) {
+    console.error('Fetch finger sites failed:', error);
+    message.error('获取关联站点失败');
+  } finally {
+    fingerModalLoading.value = false;
+  }
+};
 const searchForm = ref({});
 const pagination = reactive({ current: 1, pageSize: 10, total: 0 });
 

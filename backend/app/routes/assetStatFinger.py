@@ -30,8 +30,29 @@ class ARLAssetStatFinger(ARLResource):
         资产组指纹统计信息查询
         """
         args = self.parser.parse_args()
-        data = self.build_data(args=args, collection='asset_stat_finger')
-        return data
+        query = self.build_db_query(args)
+
+        pipeline = [
+            {"$match": query},
+            {"$group": {"_id": "$name", "cnt": {"$sum": "$cnt"}}},
+            {"$project": {"_id": 0, "name": "$_id", "cnt": 1}},
+            {"$sort": {"cnt": -1}},
+            {"$skip": (args.page - 1) * args.size},
+            {"$limit": args.size}
+        ]
+        items = list(utils.conn_db('asset_stat_finger').aggregate(pipeline))
+
+        count_pipeline = [
+            {"$match": query},
+            {"$group": {"_id": "$name"}}
+        ]
+        total = len(list(utils.conn_db('asset_stat_finger').aggregate(count_pipeline)))
+
+        return {
+            "total": total,
+            "items": items,
+            "code": 200
+        }
 
 
 @ns.route('/export/')

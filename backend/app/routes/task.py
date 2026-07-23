@@ -6,7 +6,7 @@ from app import celerytask
 from app.utils import get_logger, auth
 from . import base_query_fields, ARLResource, get_arl_parser, conn
 from app import utils
-from app.modules import TaskStatus, ErrorMsg, TaskSyncStatus, CeleryAction, TaskTag, TaskType, AssetScopeType
+from app.modules import TaskStatus, ErrorMsg, TaskSyncStatus, CeleryAction, TaskTag, TaskType, AssetScopeType, CeleryRoutingKey
 from app.helpers import get_options_by_policy_id, submit_task_task,\
     submit_risk_cruising, get_scope_by_scope_id, check_target_in_scope
 from app.helpers.task import get_task_data, restart_task
@@ -421,8 +421,8 @@ class SyncTask(ARLResource):
                 "scope_id": scope_id
             }
         }
-        # 4. 【异步下发】：用 .delay() 把活派给 Celery 工人去后台慢慢干
-        celerytask.arl_task.delay(options=options)
+        # 4. 【异步下发】：用 apply_async 派给 Celery 轻任务队列
+        celerytask.arl_task.apply_async(kwargs={'options': options}, queue=CeleryRoutingKey.ASSET_TASK_LIGHT)
 
         # 5. 更新数据库里这条任务的状态（保存刚刚改的 WAITING）
         conn('task').find_one_and_replace(query, task_data)

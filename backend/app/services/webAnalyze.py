@@ -1,4 +1,5 @@
 import time
+import os
 import json
 from app import utils
 from app.config import Config
@@ -13,14 +14,18 @@ class WebAnalyze(BaseThread):
 
     def work(self, site):
         cmd_parameters = ['node',
-                          '/code/app/tools/driver_pptr.js',
+                          os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'tools', 'driver_pptr.js'),
                           site
                           ]
         logger.debug("WebAnalyze=> {}".format(" ".join(cmd_parameters)))
 
         output = utils.check_output(cmd_parameters, timeout=20)
         output = output.decode('utf-8')
-        self.analyze_map[site] = json.loads(output)["applications"]
+        try:
+            self.analyze_map[site] = json.loads(output)["applications"]
+        except Exception as e:
+            logger.warning("Failed to parse webAnalyze output for {}: {}, output: {}".format(site, e, output))
+            self.analyze_map[site] = []
 
     def run(self):
         t1 = time.time()

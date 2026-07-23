@@ -42,6 +42,49 @@
             @change="onSearch"
         />
 
+        <div
+            v-else-if="field.hasOperatorSelect"
+            style="display: flex; align-items: center; border: 1px solid var(--arl-border-color); border-radius: 2px; width: 280px; background: var(--arl-bg-white);"
+        >
+          <template v-if="field.type === 'select'">
+            <a-select
+                v-model:value="searchForm[field.key]"
+                :placeholder="`请选择${field.label}`"
+                :bordered="false"
+                style="flex: 1; box-shadow: none;"
+                allowClear
+                @change="onSearch"
+            >
+              <a-select-option v-for="opt in field.options" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </a-select-option>
+            </a-select>
+          </template>
+          <template v-else>
+            <a-input
+                v-model:value="searchForm[field.key]"
+                :placeholder="`请输入${field.label}`"
+                :bordered="false"
+                style="flex: 1; box-shadow: none;"
+                allowClear
+                @pressEnter="onSearch"
+            >
+              <template #suffix>
+                <search-outlined @click="onSearch" style="cursor: pointer; color: var(--arl-text-color); opacity: 0.25;" />
+              </template>
+            </a-input>
+          </template>
+          <div style="width: 1px; height: 16px; background-color: var(--arl-border-color);"></div>
+          <a-select
+              v-model:value="field.operator"
+              :bordered="false"
+              style="width: 90px; box-shadow: none;"
+              @change="onSearch"
+          >
+            <a-select-option v-for="op in field.operators" :key="op" :value="op">{{ op }}</a-select-option>
+          </a-select>
+        </div>
+
         <a-input
             v-else
             v-model:value="searchForm[field.key]"
@@ -589,7 +632,13 @@ const tabConfig = {
     url: '/asset_stat_finger/',
     tabName: '指纹统计',
     searchFields: [
-      { label: 'finger', key: 'name', operator: '=' }
+      { 
+        label: 'finger', 
+        key: 'name', 
+        operator: '模糊匹配',
+        hasOperatorSelect: true,
+        operators: ['模糊匹配', '精确匹配']
+      }
     ],
     cols: [
       { title: '序号', key: 'index', width: 80, align: 'center' },
@@ -618,7 +667,16 @@ const fetchData = async () => {
           params.update_date__dgt = searchForm.value[key][0].format('YYYY-MM-DD HH:mm:ss');
           params.update_date__dlt = searchForm.value[key][1].format('YYYY-MM-DD HH:mm:ss');
         } else {
-          params[key] = searchForm.value[key];
+          let paramKey = key;
+          const fieldConfig = config.searchFields?.find(f => f.key === key);
+          if (fieldConfig && fieldConfig.hasOperatorSelect) {
+            if (fieldConfig.operator === '大于') paramKey += '__gt';
+            else if (fieldConfig.operator === '小于') paramKey += '__lt';
+            else if (fieldConfig.operator === '不等于') paramKey += '__neq';
+            else if (fieldConfig.operator === '不包含') paramKey += '__not';
+            else if (fieldConfig.operator === '精确匹配') paramKey += '__eq';
+          }
+          params[paramKey] = searchForm.value[key];
         }
       }
     }
@@ -727,7 +785,16 @@ const handleExport = async () => {
           params.update_date__dgt = searchForm.value[key][0].format('YYYY-MM-DD HH:mm:ss');
           params.update_date__dlt = searchForm.value[key][1].format('YYYY-MM-DD HH:mm:ss');
         } else {
-          params[key] = searchForm.value[key];
+          let paramKey = key;
+          const fieldConfig = config.searchFields?.find(f => f.key === key);
+          if (fieldConfig && fieldConfig.hasOperatorSelect) {
+            if (fieldConfig.operator === '大于') paramKey += '__gt';
+            else if (fieldConfig.operator === '小于') paramKey += '__lt';
+            else if (fieldConfig.operator === '不等于') paramKey += '__neq';
+            else if (fieldConfig.operator === '不包含') paramKey += '__not';
+            else if (fieldConfig.operator === '精确匹配') paramKey += '__eq';
+          }
+          params[paramKey] = searchForm.value[key];
         }
       }
     }

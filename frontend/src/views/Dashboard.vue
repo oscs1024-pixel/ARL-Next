@@ -76,9 +76,19 @@
             <div class="stat-icon-box dark">
               <GithubOutlined />
             </div>
-            <div class="stat-info">
-              <div class="stat-label">GitHub 监控仓库</div>
-              <div class="stat-value">{{ stats.github_monitors }}</div>
+            <div class="stat-info" style="width: 100%;">
+              <div class="stat-label">GitHub 监控动态 (今日)</div>
+              <div class="stat-split-values" style="margin-top: 4px;">
+                <div class="stat-split-item" @click.stop="router.push('/GitHubTasks/GitHubTasksList')">
+                  <div class="val" style="color: #f5222d">{{ sysInfo.github_today?.leaks || 0 }}</div>
+                  <div class="sub-label">新增泄露</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-split-item" @click.stop="router.push('/GitHubTasks/GitHubTasksList?tab=cve_history')">
+                  <div class="val" style="color: #faad14">{{ sysInfo.github_today?.intel || 0 }}</div>
+                  <div class="sub-label">新增情报</div>
+                </div>
+              </div>
             </div>
           </div>
         </a-card>
@@ -260,7 +270,8 @@ const sysInfo = ref({
   cpu_percent: 0,
   mem_percent: 0,
   disk_percent: 0,
-  tasks: { running: 0, waiting: 0 }
+  tasks: { running: 0, waiting: 0 },
+  github_today: { leaks: 0, intel: 0 }
 });
 
 const logs = ref([]);
@@ -322,13 +333,14 @@ const fetchTrendAndRender = async () => {
             type: 'cross',
             crossStyle: { color: isDarkMode.value ? '#888' : '#999' }
           },
-          backgroundColor: 'var(--arl-bg-light)',
-          borderColor: '#eee',
+          backgroundColor: isDarkMode.value ? '#1f1f1f' : '#ffffff',
+          borderColor: isDarkMode.value ? '#333' : '#eee',
           textStyle: { color: isDarkMode.value ? '#eee' : '#333' }
         },
         legend: {
           data: ['新增站点', '漏洞'],
-          top: 0
+          top: 0,
+          textStyle: { color: isDarkMode.value ? '#eee' : '#333' }
         },
         grid: {
           left: '3%',
