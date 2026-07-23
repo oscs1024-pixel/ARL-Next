@@ -32,8 +32,8 @@
 * **全局仪表盘**：实时展示系统资源消耗、后台任务状态、多维风险统计及最新日志流。
   <br><img src="./img/dashboard.png" alt="仪表盘" width="800"><br>
 
-* **企业资产查询**：支持 ICP 备案与天眼查关联检索，一键同步企业资产（网站/APP/小程序/公众号等）并下发任务。
-  <br><img src="./img/enterprise-asset-search1.png" alt="ICP备案查询" width="800"><br>
+* **OSINT 资产侦察**：支持 ICP 备案与天眼查等开源情报关联检索，一键同步企业资产（网站/APP/小程序/公众号等）并无缝下发任务。
+  <br><img src="./img/enterprise-asset-search1.png" alt="资产侦察" width="800"><br>
 
 * **任务与指纹管理**：支持扫描任务全生命周期追踪、自定义 PoC 插件组合，以及全局细粒度的资产指纹检索。
   <br><img src="./img/task-new1.png" alt="任务新建" width="800"><br>
@@ -42,7 +42,7 @@
 * **威胁情报雷达**：支持最新 CVE 漏洞追踪与 **GitHub** 代码泄露实时监控。
   <br><img src="./img/threat-intel-radar1.png" alt="威胁情报雷达" width="800"><br>
 
-* **系统设置**：集成 Fofa/天眼查热配置、字典云端管理、并发微调及六大告警通道（钉钉/飞书/企微/Telegram/邮件/Webhook）一键测试。
+* **系统设置**：集成 Fofa/天眼查热配置、字典云端管理、轻重任务队列并发热扩缩容，及六大告警通道（钉钉/飞书/企微/Telegram/邮件/Webhook）一键测试。
   <br><img src="./img/system-settings1.png" alt="系统设置" width="800"><br>
 
 ---
